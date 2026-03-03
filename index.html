@@ -4,218 +4,174 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Dungeon Slayer</title>
+
 <style>
-  :root{
-    --bg:#050505; --panel:#121212; --panel2:#0a0a0a;
-    --border:#4a0000; --txt:#c0c0c0; --mut:#888;
-    --red:#aa0000; --gold:#d4af37; --green:#00aa00; --blue:#0088ff;
-    --rare:#5cc8ff; --epic:#b58cff; --leg:#ffd166; --myth:#ff5cf1;
-    --ok:#4dffb5; --bad:#ff4d6d;
-  }
-  *{box-sizing:border-box}
-  body{background:var(--bg); color:var(--txt); font-family:Verdana,sans-serif; margin:0; padding:14px; display:flex; justify-content:center;}
-  #game{width:1200px; background:var(--panel); border:4px solid var(--border); box-shadow:0 0 40px #000; padding:14px; display:flex; flex-direction:column; gap:12px;}
-  h1{text-align:center; color:var(--red); letter-spacing:4px; margin:6px 0; text-transform:uppercase; text-shadow:2px 2px 5px #000;}
+/* === CSS START === */
+:root{
+  --bg:#050505; --panel:#121212; --panel2:#0a0a0a;
+  --border:#4a0000; --txt:#c0c0c0; --mut:#888;
+  --red:#aa0000; --gold:#d4af37; --green:#00aa00; --blue:#0088ff;
+  --rare:#5cc8ff; --epic:#b58cff; --leg:#ffd166; --myth:#ff5cf1;
+  --ok:#4dffb5; --bad:#ff4d6d;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:Verdana,sans-serif;margin:0;padding:14px;display:flex;justify-content:center;}
+#game{width:1200px;background:var(--panel);border:4px solid var(--border);box-shadow:0 0 40px #000;padding:14px;display:flex;flex-direction:column;gap:12px;}
+h1{text-align:center;color:var(--red);letter-spacing:4px;margin:6px 0;text-transform:uppercase;text-shadow:2px 2px 5px #000;}
 
-  .header{
-    position:sticky; top:0; z-index:80;
-    display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between;
-    padding:10px 10px 12px 10px;
-    margin:-14px -14px 0 -14px;
-    background:rgba(18,18,18,.93);
-    backdrop-filter: blur(6px);
-    border-bottom:2px solid var(--border);
-    box-shadow: 0 10px 25px rgba(0,0,0,.55);
-  }
-  .stat{flex:1; min-width:165px; background:#1a1a1a; border:1px solid #333; border-radius:14px; padding:10px 12px; text-align:center;}
-  .stat .lab{font-size:0.72em; color:var(--mut); text-transform:uppercase; margin-bottom:4px;}
-  .stat .val{font-size:1.05em; font-weight:900; color:#fff;}
-  .gold{color:var(--gold)!important;}
+.header{
+  position:sticky;top:0;z-index:80;
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;
+  padding:10px 10px 12px 10px;
+  margin:-14px -14px 0 -14px;
+  background:rgba(18,18,18,.93);
+  backdrop-filter: blur(6px);
+  border-bottom:2px solid var(--border);
+  box-shadow: 0 10px 25px rgba(0,0,0,.55);
+}
+.stat{flex:1;min-width:165px;background:#1a1a1a;border:1px solid #333;border-radius:14px;padding:10px 12px;text-align:center;}
+.stat .lab{font-size:0.72em;color:var(--mut);text-transform:uppercase;margin-bottom:4px;}
+.stat .val{font-size:1.05em;font-weight:900;color:#fff;}
+.gold{color:var(--gold)!important;}
 
-  .layout{display:flex; gap:14px; margin-top:6px;}
-  .main{flex:2; display:flex; flex-direction:column; gap:12px;}
-  .side{flex:1; display:flex; flex-direction:column; gap:12px;}
+.layout{display:flex;gap:14px;margin-top:6px;}
+.main{flex:2;display:flex;flex-direction:column;gap:12px;}
+.side{flex:1;display:flex;flex-direction:column;gap:12px;}
 
-  .box{background:var(--panel2); border:2px solid var(--border); border-radius:16px; padding:14px;}
-  .box h2{margin:0; color:#eee; font-size:1.25em;}
+.box{background:var(--panel2);border:2px solid var(--border);border-radius:16px;padding:14px;}
+.box h2{margin:0;color:#eee;font-size:1.25em;}
 
-  .monRow{display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:center; margin-top:10px;}
-  #monster-img{
-    width:180px; height:180px; border-radius:14px; background:#050505;
-    border:1px solid #2a2a2a; box-shadow:inset 0 0 70px #000, 0 0 25px #000;
-    background-repeat:no-repeat;
-  }
+.monRow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:10px;}
+#monster-img{
+  width:180px;height:180px;border-radius:14px;background:#050505;
+  border:1px solid #2a2a2a;box-shadow:inset 0 0 70px #000, 0 0 25px #000;
+  background-repeat:no-repeat;
+}
+.mut{color:var(--mut);font-size:12px;}
+#monster-desc{font-style:italic;color:#777;font-size:0.85em;margin:8px 0;min-height:2.2em;}
 
-  .mut{color:var(--mut); font-size:12px;}
-  #monster-desc{font-style:italic; color:#777; font-size:0.85em; margin:8px 0; min-height:2.2em;}
-  .hpBarWrap{width:100%; max-width:460px;}
-  .hpBar{width:100%; height:10px; border-radius:999px; overflow:hidden; background:#333; border:1px solid #222; margin:6px 0;}
-  .hpFill{height:100%; width:100%; background:linear-gradient(90deg,#7a0000,#ff1a1a); transition:width .2s;}
+.hpBarWrap{width:100%;max-width:520px;}
+.hpBar{width:100%;height:10px;border-radius:999px;overflow:hidden;background:#333;border:1px solid #222;margin:6px 0;}
+.hpFill{height:100%;width:0%;background:linear-gradient(90deg,#7a0000,#ff1a1a);transition:width .2s;}
 
-  .fxRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;}
-  .fx{
-    display:inline-flex; align-items:center; gap:6px;
-    border:1px solid #2a2a2a; background:#080808;
-    padding:4px 8px; border-radius:999px;
-    font-size:11px; color:#cfcfcf;
-  }
-  .fx b{color:#fff;}
+.fxRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.fx{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid #2a2a2a;background:#080808;
+  padding:4px 8px;border-radius:999px;
+  font-size:11px;color:#cfcfcf;
+}
+.fx b{color:#fff;}
 
-  .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;}
-  .skillRow{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px;}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+.skillRow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
 
-  button{
-    border:1px solid #2a2a2a; background:#1b1b1b; color:#eee;
-    padding:10px 12px; border-radius:14px; font-weight:900; text-transform:uppercase; cursor:pointer;
-    transition:filter .15s, transform .05s;
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  }
-  button:hover{filter:brightness(1.1)}
-  button:active{transform:translateY(1px)}
-  button:disabled{opacity:.45; cursor:not-allowed;}
+button{
+  border:1px solid #2a2a2a;background:#1b1b1b;color:#eee;
+  padding:10px 12px;border-radius:14px;font-weight:900;text-transform:uppercase;cursor:pointer;
+  transition:filter .15s, transform .05s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+button:hover{filter:brightness(1.1)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:not-allowed;}
 
-  .btnAttack{background:var(--red); color:#fff; letter-spacing:1px;}
-  .btnUse{background:var(--green); color:#fff; border-color:#0a4; font-size:12px;}
-  .btnDungeon{background:#0e1430; border-color:#263a8b;}
-  .btnExit{background:#2b2b2b; border-color:#555; font-size:12px;}
-  .btnChest{background:#2a1a2f; border-color:#50305f;}
-  .btnSmith{background:#1e1a0b; border-color:#6a5a18;}
-  .btnWeekly{background:#1a0b10; border-color:#6a1b2a;}
-  .btnSmall{font-size:12px; padding:9px 10px;}
+.btnAttack{background:var(--red);color:#fff;letter-spacing:1px;}
+.btnUse{background:var(--green);color:#fff;border-color:#0a4;font-size:12px;}
+.btnDungeon{background:#0e1430;border-color:#263a8b;}
+.btnExit{background:#2b2b2b;border-color:#555;font-size:12px;}
+.btnChest{background:#2a1a2f;border-color:#50305f;}
+.btnSmith{background:#1e1a0b;border-color:#6a5a18;}
+.btnWeekly{background:#1a0b10;border-color:#6a1b2a;}
+.btnSmall{font-size:12px;padding:9px 10px;}
 
-  /* SKILL BUTTONS + TOOLTIP */
-  .btnSkill{
-    background:#111; border-color:#3a3a3a; min-width:240px;
-    justify-content:space-between;
-    position:relative;
-  }
-  .btnSkill .left{display:flex; align-items:center; gap:8px;}
-  .btnSkill .cd{opacity:.85; font-size:10px; margin-left:6px; border:1px solid #333; padding:1px 6px; border-radius:999px;}
-  .infoDot{
-    width:20px; height:20px; border-radius:999px; border:1px solid #444;
-    display:inline-flex; align-items:center; justify-content:center;
-    font-size:12px; line-height:1; opacity:.9;
-    background:#0b0b0b;
-  }
-  .btnSkill[data-tip]:hover::after{
-    content: attr(data-tip);
-    position:absolute;
-    left:50%;
-    transform:translateX(-50%);
-    bottom:calc(100% + 10px);
-    width:min(420px, 80vw);
-    background:#050505;
-    border:1px solid #3a3a3a;
-    padding:10px 12px;
-    border-radius:14px;
-    color:#e6e6e6;
-    font-size:12px;
-    font-weight:600;
-    text-transform:none;
-    letter-spacing:0;
-    box-shadow:0 0 30px rgba(0,0,0,.8);
-    z-index:999;
-    pointer-events:none;
-    line-height:1.35;
-    white-space:normal;
-  }
-  .btnSkill[data-tip]:hover::before{
-    content:"";
-    position:absolute;
-    left:50%;
-    transform:translateX(-50%);
-    bottom:calc(100% + 2px);
-    border:8px solid transparent;
-    border-top-color:#3a3a3a;
-    z-index:999;
-    pointer-events:none;
-  }
+.btnSkill{
+  background:#111;border-color:#3a3a3a;min-width:240px;
+  justify-content:space-between;position:relative;
+}
+.btnSkill .left{display:flex;align-items:center;gap:8px;}
+.btnSkill .cd{opacity:.85;font-size:10px;margin-left:6px;border:1px solid #333;padding:1px 6px;border-radius:999px;}
+.infoDot{
+  width:20px;height:20px;border-radius:999px;border:1px solid #444;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:12px;line-height:1;opacity:.9;background:#0b0b0b;
+}
+.btnSkill[data-tip]:hover::after{
+  content: attr(data-tip);
+  position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(100% + 10px);
+  width:min(420px, 80vw);
+  background:#050505;border:1px solid #3a3a3a;
+  padding:10px 12px;border-radius:14px;color:#e6e6e6;
+  font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;
+  box-shadow:0 0 30px rgba(0,0,0,.8);
+  z-index:999;pointer-events:none;line-height:1.35;white-space:normal;
+}
+.btnSkill[data-tip]:hover::before{
+  content:"";position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(100% + 2px);
+  border:8px solid transparent;border-top-color:#3a3a3a;
+  z-index:999;pointer-events:none;
+}
 
-  .sideBox{background:#1a1a1a; border:1px solid #333; border-radius:16px; padding:12px;}
-  .sideTitle{font-weight:900; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:6px; color:#aaa; text-transform:uppercase; font-size:0.8em;}
+.sideBox{background:#1a1a1a;border:1px solid #333;border-radius:16px;padding:12px;}
+.sideTitle{font-weight:900;margin-bottom:10px;border-bottom:1px solid #444;padding-bottom:6px;color:#aaa;text-transform:uppercase;font-size:0.8em;}
 
-  #log{
-    height:240px; overflow:auto; background:#070707; border:1px solid #333; border-radius:16px;
-    padding:10px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace; font-size:0.85em;
-    line-height:1.35; display:flex; flex-direction:column; gap:4px;
-  }
-  #log div{border-bottom:1px solid #111; padding:4px 0;}
-  .cGold{color:var(--gold);}
-  .cBad{color:var(--bad);}
-  .cOk{color:var(--ok);}
-  .cXp{color:var(--blue);}
-  .cCrit{color:var(--leg); font-weight:900;}
-  .cInfo{color:#bbb;}
+#log{
+  height:240px;overflow:auto;background:#070707;border:1px solid #333;border-radius:16px;
+  padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:0.85em;
+  line-height:1.35;display:flex;flex-direction:column;gap:4px;
+}
+#log div{border-bottom:1px solid #111;padding:4px 0;}
+.cGold{color:var(--gold);}
+.cBad{color:var(--bad);}
+.cOk{color:var(--ok);}
+.cXp{color:var(--blue);}
+.cCrit{color:var(--leg);font-weight:900;}
+.cInfo{color:#bbb;}
 
-  #postFight{display:none; background:linear-gradient(180deg,#0b0b0b,#050505); border:2px solid #3b0b0b; border-radius:16px; padding:12px; box-shadow:0 0 30px rgba(0,0,0,.6);}
-  #postFight h3{margin:0 0 8px 0; color:#eee; letter-spacing:1px; text-transform:uppercase; font-size:13px;}
-  #summaryText{font-size:12px; color:#cfcfcf; line-height:1.45;}
-  .pfActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
-  .pfActions button{font-size:12px; padding:10px 10px;}
-  .hl{color:#fff; font-weight:900;}
+#postFight{display:none;background:linear-gradient(180deg,#0b0b0b,#050505);border:2px solid #3b0b0b;border-radius:16px;padding:12px;box-shadow:0 0 30px rgba(0,0,0,.6);}
+#postFight h3{margin:0 0 8px 0;color:#eee;letter-spacing:1px;text-transform:uppercase;font-size:13px;}
+#summaryText{font-size:12px;color:#cfcfcf;line-height:1.45;}
+.pfActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.pfActions button{font-size:12px;padding:10px 10px;}
+.hl{color:#fff;font-weight:900;}
 
-  .tag{font-size:10px; padding:2px 8px; border:1px solid #333; border-radius:999px; color:#aaa; text-transform:uppercase; letter-spacing:.4px}
-  .tag.common{opacity:.75}
-  .tag.rare{border-color:rgba(92,200,255,.4); color:var(--rare)}
-  .tag.epic{border-color:rgba(181,140,255,.4); color:var(--epic)}
-  .tag.leg{border-color:rgba(255,209,102,.4); color:var(--leg)}
-  .tag.myth{border-color:rgba(255,92,241,.45); color:var(--myth)}
+.tag{font-size:10px;padding:2px 8px;border:1px solid #333;border-radius:999px;color:#aaa;text-transform:uppercase;letter-spacing:.4px}
+.tag.common{opacity:.75}
+.tag.rare{border-color:rgba(92,200,255,.4);color:var(--rare)}
+.tag.epic{border-color:rgba(181,140,255,.4);color:var(--epic)}
+.tag.leg{border-color:rgba(255,209,102,.4);color:var(--leg)}
+.tag.myth{border-color:rgba(255,92,241,.45);color:var(--myth)}
 
-  .inv{max-height:260px; overflow:auto; padding-right:4px; display:flex; flex-direction:column; gap:10px;}
-  .itemRow{display:flex; gap:10px; align-items:center; background:#0b0b0b; border:1px solid #2a2a2a; border-radius:16px; padding:10px;}
-  .itMeta{flex:1;}
-  .itMeta b{font-size:12px;}
-  .itMeta .sub{font-size:11px; color:#8a8a8a; margin-top:2px; line-height:1.25;}
-  .itBtns{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
-  .btnEquip{background:#2a1a2f; border-color:#50305f; font-size:12px; padding:8px 10px;}
-  .btnSell{background:#2a2a2a; font-size:12px; padding:8px 10px;}
-  .btnBuy{background:#1e1a0b; border-color:#6a5a18; font-size:12px; padding:8px 10px;}
-  .btnRepair{background:#0b1e16; border-color:#1b6a4a; font-size:12px; padding:8px 10px;}
+.inv{max-height:260px;overflow:auto;padding-right:4px;display:flex;flex-direction:column;gap:10px;}
+.itemRow{display:flex;gap:10px;align-items:center;background:#0b0b0b;border:1px solid #2a2a2a;border-radius:16px;padding:10px;}
+.itMeta{flex:1;}
+.itMeta b{font-size:12px;}
+.itMeta .sub{font-size:11px;color:#8a8a8a;margin-top:2px;line-height:1.25;}
+.itBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.btnEquip{background:#2a1a2f;border-color:#50305f;font-size:12px;padding:8px 10px;}
+.btnSell{background:#2a2a2a;font-size:12px;padding:8px 10px;}
+.btnBuy{background:#1e1a0b;border-color:#6a5a18;font-size:12px;padding:8px 10px;}
+.btnRepair{background:#0b1e16;border-color:#1b6a4a;font-size:12px;padding:8px 10px;}
 
-  /* ===== FIX: POPUP SCROLL + ALWAYS EXIT ===== */
-  #popupBackdrop{
-    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-    background:rgba(0,0,0,.78); z-index:500; padding:16px;
-  }
-  #popupBox{
-    width:min(980px, 100%);
-    max-height: min(86vh, 820px);
-    display:flex;
-    flex-direction:column;
-    background:#0b0b0b;
-    border:2px solid #4a0000;
-    border-radius:18px;
-    box-shadow:0 0 60px rgba(0,0,0,.9);
-    overflow:hidden;
-  }
-  #popupBox h2{
-    margin:0;
-    padding:14px 16px 10px 16px;
-    color:#fff;
-    letter-spacing:1px;
-    border-bottom:1px solid #2a2a2a;
-  }
-  #popupText{
-    padding:14px 16px;
-    color:#ddd;
-    font-size:13px;
-    line-height:1.5;
-    overflow:auto;
-  }
-  #popupActions{
-    padding:12px 16px 14px 16px;
-    display:flex;
-    gap:10px;
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    border-top:1px solid #2a2a2a;
-    background:#070707;
-  }
+#popupBackdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);z-index:500;padding:16px;}
+#popupBox{
+  width:min(980px,100%);
+  max-height:min(86vh,820px);
+  display:flex;flex-direction:column;
+  background:#0b0b0b;border:2px solid #4a0000;border-radius:18px;
+  box-shadow:0 0 60px rgba(0,0,0,.9);overflow:hidden;
+}
+#popupBox h2{margin:0;padding:14px 16px 10px 16px;color:#fff;letter-spacing:1px;border-bottom:1px solid #2a2a2a;}
+#popupText{padding:14px 16px;color:#ddd;font-size:13px;line-height:1.5;overflow:auto;}
+#popupActions{padding:12px 16px 14px 16px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid #2a2a2a;background:#070707;}
 
-  @media (max-width:1200px){
-    #game{width:100%}
-    .layout{flex-direction:column}
-  }
+input[type="text"]{
+  padding:10px 12px;border-radius:14px;border:1px solid #333;background:#070707;color:#eee;font-weight:700;outline:none;
+}
+@media (max-width:1200px){#game{width:100%}.layout{flex-direction:column}}
+/* === CSS END === */
 </style>
 </head>
 
@@ -223,7 +179,7 @@
 <div id="game">
   <h1>DUNGEON SLAYER</h1>
 
-  <div class="header">
+  <div class="header" id="fixedHeader">
     <div class="stat"><div class="lab">Level</div><div class="val" id="lvl">1</div></div>
     <div class="stat"><div class="lab">Erfahrungspunkte</div><div class="val" id="xp">0 / 100</div></div>
     <div class="stat"><div class="lab">Gesundheit</div><div class="val" id="hp">100/100</div></div>
@@ -239,15 +195,15 @@
         <h2 id="monster-name">Bereit…</h2>
 
         <div class="monRow">
-          <div id="monster-img"></div>
+          <div id="monster-img" title="Monster-Porträt"></div>
 
-          <div style="min-width:260px; max-width:520px; text-align:left">
+          <div style="min-width:260px;max-width:540px;text-align:left">
             <div class="mut">Monster-Gesundheit</div>
-            <div style="font-weight:900; font-size:16px">
+            <div style="font-weight:900;font-size:16px">
               <span id="monster-hp-text">—</span>
             </div>
             <div class="hpBarWrap">
-              <div class="hpBar"><div id="monster-hp-bar" class="hpFill" style="width:0%"></div></div>
+              <div class="hpBar"><div id="monster-hp-bar" class="hpFill"></div></div>
             </div>
 
             <div id="fxIcons" class="fxRow"></div>
@@ -311,19 +267,22 @@
     <div class="side">
       <div class="sideBox">
         <div class="sideTitle">Profil</div>
+        <div class="mut" id="nameLine">Name: —</div>
         <div class="mut" id="classLine">Klasse: —</div>
         <div class="mut" id="compLine">Begleiter: —</div>
-        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btnSmall" onclick="openNameChange()">Name ändern</button>
           <button class="btnSmall" onclick="openClassPicker(false)">Klasse wählen</button>
           <button class="btnSmall" onclick="openCompanionPicker(false)">Begleiter wählen</button>
           <button class="btnSmall" onclick="hardResetSaveUI()">Reset</button>
         </div>
+        <div class="mut" id="buildLine" style="margin-top:10px;">Build: —</div>
       </div>
 
       <div class="sideBox">
         <div class="sideTitle">Alchemieladen</div>
         <div class="mut">Tränke: <b><span id="potion-count">2</span></b></div>
-        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
           <button class="btnUse" id="heal-btn" onclick="usePotion(false)">Trank benutzen</button>
           <button class="btnSmall" onclick="openAlchemy()">Alchemieladen öffnen</button>
         </div>
@@ -357,29 +316,29 @@
 </div>
 
 <script>
-/* =========================
-   SPRITE SHEET (8x8, 64 Portraits)
-   ========================= */
+/* === BUILD START === */
+const BUILD_INFO = { name:"Dungeon Slayer", version:"0.9.1", build:"2026-03-03-2" };
+/* === BUILD END === */
+
+/* === SPRITES START === */
 const SPRITE_URL = "https://2019.stemweder-berg-schule.de/wp-content/uploads/2026/03/IMG_0305.png";
-const GRID = 8, TILE_PX = 180, BG_SIZE = GRID * TILE_PX;
+const GRID=8, TILE_PX=180, BG_SIZE=GRID*TILE_PX;
 function applySprite(){
-  const el = document.getElementById("monster-img");
-  el.style.backgroundImage = `url(${SPRITE_URL})`;
-  el.style.backgroundSize = `${BG_SIZE}px ${BG_SIZE}px`;
-  el.style.backgroundRepeat = "no-repeat";
+  const el=document.getElementById("monster-img");
+  el.style.backgroundImage=`url(${SPRITE_URL})`;
+  el.style.backgroundSize=`${BG_SIZE}px ${BG_SIZE}px`;
+  el.style.backgroundRepeat="no-repeat";
   setPortraitIndex(0);
 }
 function setPortraitIndex(idx){
-  const el = document.getElementById("monster-img");
-  const safe = ((idx % 64) + 64) % 64;
-  const r = Math.floor(safe / GRID);
-  const c = safe % GRID;
-  el.style.backgroundPosition = `${-c*TILE_PX}px ${-r*TILE_PX}px`;
+  const el=document.getElementById("monster-img");
+  const safe=((idx%64)+64)%64;
+  const r=Math.floor(safe/GRID), c=safe%GRID;
+  el.style.backgroundPosition=`${-c*TILE_PX}px ${-r*TILE_PX}px`;
 }
+/* === SPRITES END === */
 
-/* =========================
-   UTIL + LOG
-   ========================= */
+/* === UTIL START === */
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmt=(n)=>Math.floor(n).toLocaleString("de-DE");
 function log(msg, cls){
@@ -390,10 +349,9 @@ function log(msg, cls){
   lb.prepend(d);
   while(lb.children.length>300) lb.removeChild(lb.lastChild);
 }
+/* === UTIL END === */
 
-/* =========================
-   SEEDED RNG
-   ========================= */
+/* === RNG START === */
 function xfnv1a(str){
   let h=2166136261>>>0;
   for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
@@ -420,28 +378,19 @@ function weekKey(){
   const wk=Math.floor((day - (onejan.getUTCDay()||7) + 10)/7);
   return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
 }
+/* === RNG END === */
 
-/* =========================
-   SAVE / LOAD
-   ========================= */
-const SAVE_VERSION=3;
+/* === SAVE START === */
+const SAVE_VERSION=4;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
-
 function snapshotForSave(){
-  return {
-    v:SAVE_VERSION, t:Date.now(),
-    player, currentHp,
-    monster, isInBattle,
-    run, skillCD, pfx,
-    shopDaily, shopWeekly
-  };
+  return { v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, run,skillCD,pfx, shopDaily,shopWeekly, lastRegenHpAt,lastRegenEnergyAt };
 }
 function saveGame(){
   const json=safeStringify(snapshotForSave());
-  if(!json) return;
-  localStorage.setItem(SAVE_KEY,json);
+  if(json) localStorage.setItem(SAVE_KEY,json);
 }
 function loadGame(){
   const raw=localStorage.getItem(SAVE_KEY);
@@ -453,111 +402,77 @@ function loadGame(){
   currentHp=typeof data.currentHp==="number"?data.currentHp:currentHp;
   monster=data.monster||monster;
   isInBattle=!!data.isInBattle;
-
   run=data.run||run;
   skillCD=data.skillCD||skillCD;
   pfx=data.pfx||pfx;
-
   shopDaily=data.shopDaily||shopDaily;
   shopWeekly=data.shopWeekly||shopWeekly;
 
-  isInBattle = (isInBattle && monster && monster.hp>0) ? true : false;
-  currentHp = Math.max(1, Math.min(currentHp, getMaxHp()));
-  player.energy = Math.max(0, Math.min(player.energy, player.maxEnergy));
+  lastRegenHpAt=data.lastRegenHpAt||Date.now();
+  lastRegenEnergyAt=data.lastRegenEnergyAt||Date.now();
+
+  if(!monster || monster.hp<=0) isInBattle=false;
+  currentHp=clamp(currentHp,1,getMaxHp());
+  player.energy=clamp(player.energy,0,player.maxEnergy);
   return true;
 }
 function hardResetSave(){ localStorage.removeItem(SAVE_KEY); }
-function hardResetSaveUI(){ hardResetSave(); location.reload(); }
 window.addEventListener("beforeunload", saveGame);
+/* === SAVE END === */
 
-/* =========================
-   GAME STATE
-   ========================= */
+/* === STATE START === */
 const INV_CAP=28;
 const BASE_CRIT=0.05, CRIT_MULT=1.5;
 const LOOT_CHANCE=0.03;
 
 let player={
-  lvl:1, xp:0, xpToNext:100,
-  baseHp:100, baseAtk:12,
-  gold:100, potions:2,
-  weapon:null, armor:null,
+  name:"",
+  lvl:1,xp:0,xpToNext:100,
+  baseHp:100,baseAtk:12,
+  gold:100,potions:2,
+  weapon:null,armor:null,
   inv:[],
-  classId:null,
-  companionId:null,
-  energy:10, maxEnergy:10
+  classId:null,companionId:null,
+  energy:10,maxEnergy:10
 };
 let currentHp=100;
 
+function newMonsterEffects(){ return {vulnTurns:0,vulnPct:0,weakenTurns:0,weakenPct:0,bleedTurns:0,bleedDmg:0}; }
+function makeIdleMonster(){ return {name:"Bereit…",desc:"Wähle „Nächster Kampf“ oder starte einen Dungeon.",hp:0,maxHp:1,atk:0,lvl:0,tier:0,portrait:0,effects:newMonsterEffects(),isBoss:false}; }
+
 let monster=makeIdleMonster();
 let isInBattle=false;
-
 let fightTracker=null;
 
-let run={
-  active:false,
-  stage:0,
-  total:6,
-  tierBase:2,
-  chestReady:false,
-  chestLoot:null,
-  chestSeed:""
-};
+let run={ active:false, stage:0, total:6, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
 
-let pfx={
-  guardTurns:0, guardDef:0,
-  berserkTurns:0, berserkAtk:0,
-  critBonusTurns:0, critBonus:0,
-  lifeStealTurns:0, lifeSteal:0
-};
+let pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0,critBonus:0, lifeStealTurns:0,lifeSteal:0 };
 
 let skillCD={1:0,2:0,3:0};
 
-// Shops (seeded)
 let shopDaily={ key:"", weapons:[], armors:[] };
 let shopWeekly={ key:"", items:[] };
 
-function makeIdleMonster(){
-  return { name:"Bereit…", desc:"Wähle „Nächster Kampf“ oder starte einen Dungeon.", hp:0, maxHp:1, atk:0, lvl:0, tier:0, portrait:0, effects:newMonsterEffects(), isBoss:false };
-}
-function newMonsterEffects(){
-  return { vulnTurns:0, vulnPct:0, weakenTurns:0, weakenPct:0, bleedTurns:0, bleedDmg:0 };
-}
+let lastRegenHpAt=Date.now();
+let lastRegenEnergyAt=Date.now();
+/* === STATE END === */
 
-/* =========================
-   POPUP (FIXED)
-   ========================= */
+/* === POPUP START === */
 function openPopup(title, html, actionsHtml){
-  document.getElementById("popupTitle").innerText = title;
-  document.getElementById("popupText").innerHTML = html;
-
-  // Always ensure a close button exists
-  const closeBtn = `<button class="btnExit" onclick="closePopup()">Schließen</button>`;
+  document.getElementById("popupTitle").innerText=title;
+  document.getElementById("popupText").innerHTML=html;
+  const closeBtn=`<button class="btnExit" onclick="closePopup()">Schließen</button>`;
   document.getElementById("popupActions").innerHTML = actionsHtml
-    ? (actionsHtml.includes("closePopup()") ? actionsHtml : (actionsHtml + " " + closeBtn))
+    ? (actionsHtml.includes("closePopup()") ? actionsHtml : (actionsHtml+" "+closeBtn))
     : closeBtn;
-
   document.getElementById("popupBackdrop").style.display="flex";
 }
-function closePopup(){
-  document.getElementById("popupBackdrop").style.display="none";
-}
+function closePopup(){ document.getElementById("popupBackdrop").style.display="none"; }
+document.addEventListener("click",(e)=>{ const b=document.getElementById("popupBackdrop"); if(b.style.display==="flex" && e.target===b) closePopup(); });
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ const b=document.getElementById("popupBackdrop"); if(b.style.display==="flex") closePopup(); }});
+/* === POPUP END === */
 
-// Close on backdrop click + ESC
-document.addEventListener("click", (e) => {
-  const backdrop = document.getElementById("popupBackdrop");
-  if (backdrop.style.display === "flex" && e.target === backdrop) closePopup();
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    const backdrop = document.getElementById("popupBackdrop");
-    if (backdrop.style.display === "flex") closePopup();
-  }
-});
-
-/* =========================
-   RARITY / AFFIX / SET
-   ========================= */
+/* === ITEMS START === */
 function rarityTag(r){
   if(r==="Rare") return `<span class="tag rare">Rare</span>`;
   if(r==="Epic") return `<span class="tag epic">Epic</span>`;
@@ -565,50 +480,20 @@ function rarityTag(r){
   if(r==="Mythic") return `<span class="tag myth">Mythic</span>`;
   return `<span class="tag common">Common</span>`;
 }
-function rarityMult(r){
-  if(r==="Common") return 1.0;
-  if(r==="Rare") return 1.25;
-  if(r==="Epic") return 1.55;
-  if(r==="Legendary") return 2.0;
-  if(r==="Mythic") return 2.6;
-  return 1.0;
-}
-function rollRarity(rng, context){
+function rarityMult(r){ return r==="Common"?1 : r==="Rare"?1.25 : r==="Epic"?1.55 : r==="Legendary"?2.0 : r==="Mythic"?2.6 : 1; }
+function rollRarity(rng, ctx){
   const x=rng();
-  if(context==="weekly"){
-    if(x<0.08) return "Mythic";
-    if(x<0.28) return "Legendary";
-    if(x<0.62) return "Epic";
-    return "Rare";
-  }
-  if(context==="smith"){
-    if(x<0.02) return "Mythic";
-    if(x<0.12) return "Legendary";
-    if(x<0.32) return "Epic";
-    if(x<0.60) return "Rare";
-    return "Common";
-  }
-  if(context==="boss"){
-    if(x<0.05) return "Mythic";
-    if(x<0.18) return "Legendary";
-    if(x<0.45) return "Epic";
-    if(x<0.80) return "Rare";
-    return "Common";
-  }
-  if(x<0.01) return "Mythic";
-  if(x<0.06) return "Legendary";
-  if(x<0.18) return "Epic";
-  if(x<0.40) return "Rare";
-  return "Common";
+  if(ctx==="weekly"){ if(x<0.08) return "Mythic"; if(x<0.28) return "Legendary"; if(x<0.62) return "Epic"; return "Rare"; }
+  if(ctx==="smith"){ if(x<0.02) return "Mythic"; if(x<0.12) return "Legendary"; if(x<0.32) return "Epic"; if(x<0.60) return "Rare"; return "Common"; }
+  if(ctx==="boss"){ if(x<0.05) return "Mythic"; if(x<0.18) return "Legendary"; if(x<0.45) return "Epic"; if(x<0.80) return "Rare"; return "Common"; }
+  if(x<0.01) return "Mythic"; if(x<0.06) return "Legendary"; if(x<0.18) return "Epic"; if(x<0.40) return "Rare"; return "Common";
 }
-
 const SETS=[
-  {name:"Blutkette", bonus:{atk:3, def:2, hp:12}},
-  {name:"Aschenritual", bonus:{atk:2, def:3, hp:18}},
-  {name:"Schattenschwur", bonus:{atk:4, def:1, hp:10}},
-  {name:"Knochenpakt", bonus:{atk:2, def:2, hp:25}},
+  {name:"Blutkette", bonus:{atk:3,def:2,hp:12}},
+  {name:"Aschenritual", bonus:{atk:2,def:3,hp:18}},
+  {name:"Schattenschwur", bonus:{atk:4,def:1,hp:10}},
+  {name:"Knochenpakt", bonus:{atk:2,def:2,hp:25}},
 ];
-
 const AFFIX_POOL=[
   {id:"crit", name:"Kritische Treffer", apply:(lvl,rng)=>({crit:0.02+rng()*0.03})},
   {id:"lifesteal", name:"Lebensraub", apply:(lvl,rng)=>({lifesteal:0.02+rng()*0.05})},
@@ -617,47 +502,36 @@ const AFFIX_POOL=[
   {id:"def", name:"Zusätzliche Verteidigung", apply:(lvl,rng)=>({defFlat:Math.floor(1+rng()*3)})},
   {id:"energy", name:"Mehr Energie", apply:(lvl,rng)=>({energy:1})},
 ];
-
 function pickAffixes(rng,lvl,rarity){
   const count=(rarity==="Common")?(rng()<0.25?1:0)
-            :(rarity==="Rare")?(rng()<0.65?1:2)
-            :(rarity==="Epic")?(1+(rng()<0.55?1:0))
-            :(rarity==="Legendary")?2
-            :2;
-  const chosen=[];
-  const used=new Set();
+    :(rarity==="Rare")?(rng()<0.65?1:2)
+    :(rarity==="Epic")?(1+(rng()<0.55?1:0))
+    :(rarity==="Legendary")?2
+    :2;
+  const chosen=[], used=new Set();
   for(let i=0;i<count;i++){
-    let tries=0;
-    while(tries++<20){
+    for(let tries=0;tries<20;tries++){
       const a=AFFIX_POOL[Math.floor(rng()*AFFIX_POOL.length)];
-      if(!used.has(a.id)){
-        used.add(a.id);
-        const val=a.apply(lvl,rng);
-        chosen.push({id:a.id,name:a.name,val});
-        break;
-      }
+      if(!used.has(a.id)){ used.add(a.id); chosen.push({id:a.id,name:a.name,val:a.apply(lvl,rng)}); break; }
     }
   }
   return chosen;
 }
 function affixSummary(it){
-  const a=it.affixes||[];
-  if(a.length===0) return "—";
-  const parts=[];
+  const a=it?.affixes||[];
+  if(!a.length) return "—";
+  const p=[];
   for(const x of a){
-    if(x.val.crit) parts.push(`Kritische Treffer +${Math.round(x.val.crit*100)}%`);
-    if(x.val.lifesteal) parts.push(`Lebensraub +${Math.round(x.val.lifesteal*100)}%`);
-    if(x.val.hpFlat) parts.push(`Gesundheit +${x.val.hpFlat}`);
-    if(x.val.atkFlat) parts.push(`Angriff +${x.val.atkFlat}`);
-    if(x.val.defFlat) parts.push(`Verteidigung +${x.val.defFlat}%`);
-    if(x.val.energy) parts.push(`Energie +${x.val.energy}`);
+    const v=x.val;
+    if(v.crit) p.push(`Kritische Treffer +${Math.round(v.crit*100)}%`);
+    if(v.lifesteal) p.push(`Lebensraub +${Math.round(v.lifesteal*100)}%`);
+    if(v.hpFlat) p.push(`Gesundheit +${v.hpFlat}`);
+    if(v.atkFlat) p.push(`Angriff +${v.atkFlat}`);
+    if(v.defFlat) p.push(`Verteidigung +${v.defFlat}%`);
+    if(v.energy) p.push(`Energie +${v.energy}`);
   }
-  return parts.join(" · ");
+  return p.join(" · ");
 }
-
-/* =========================
-   DURABILITY
-   ========================= */
 function rollDurability(rng, rarity){
   if(rarity==="Mythic") return 90 + Math.floor(rng()*11);
   if(rarity==="Legendary") return 55 + Math.floor(rng()*36);
@@ -665,29 +539,24 @@ function rollDurability(rng, rarity){
   if(rarity==="Rare") return 18 + Math.floor(rng()*18);
   return 10 + Math.floor(rng()*16);
 }
-
-/* =========================
-   ITEMS
-   ========================= */
 const WEAPON_PREFIX=["Rostige","Blutige","Verdorbene","Flüsternde","Verkohlte","Eiskalte","Knochige","Schattenhafte"];
 const WEAPON_BASE=["Klinge","Axt","Hackbeil","Dolch","Morgenstern","Krummsäbel","Kriegshammer","Hakenmesser"];
-const ARMOR_PREFIX=["Zerfetzte","Genähte","Geweihte","Dornige","Schwarze","Aschene","Pestige","Ketten-"];
+const ARMOR_PREFIX=["Zerfetzte ","Genähte ","Geweihte ","Dornige ","Schwarze ","Aschene ","Pestige ","Ketten-"];
 const ARMOR_BASE=["Robe","Rüstung","Kürass","Kettenhemd","Schuppenpanzer","Mantel","Brustplatte","Wams"];
 
-function makeWeapon(rng, lvl, context){
-  const rarity=rollRarity(rng, context);
+function makeWeapon(rng, lvl, ctx){
+  const rarity=rollRarity(rng, ctx);
   const mult=rarityMult(rarity);
   const atk=Math.max(1, Math.floor((6 + lvl*2.1) * mult * (0.85 + rng()*0.35)));
   const name=`${WEAPON_PREFIX[Math.floor(rng()*WEAPON_PREFIX.length)]} ${WEAPON_BASE[Math.floor(rng()*WEAPON_BASE.length)]}`;
   const lvlReq=Math.max(1, Math.floor(lvl - 1 + rng()*3));
   const set=(rng()<0.35)?SETS[Math.floor(rng()*SETS.length)].name:null;
   const affixes=pickAffixes(rng,lvlReq,rarity);
-  const price=Math.floor((120 + lvlReq*55 + atk*18) * (0.9 + rng()*0.25) * mult);
+  const price=Math.floor((70 + lvlReq*34 + atk*10) * (0.9 + rng()*0.25) * mult);
   return { type:"weapon", name, rarity, lvlReq, atk, set, affixes, price };
 }
-
-function makeArmor(rng, lvl, context){
-  const rarity=rollRarity(rng, context);
+function makeArmor(rng, lvl, ctx){
+  const rarity=rollRarity(rng, ctx);
   const mult=rarityMult(rarity);
   const def=clamp(Math.floor((6 + lvl*1.25) * mult * (0.85 + rng()*0.35)), 0, 60);
   const hp=Math.max(0, Math.floor((10 + lvl*6) * mult * (0.7 + rng()*0.5)));
@@ -696,105 +565,71 @@ function makeArmor(rng, lvl, context){
   const set=(rng()<0.35)?SETS[Math.floor(rng()*SETS.length)].name:null;
   const affixes=pickAffixes(rng,lvlReq,rarity);
   const maxDur=rollDurability(rng, rarity);
-  const price=Math.floor((150 + lvlReq*70 + def*22 + hp*2.2 + maxDur*6) * (0.9 + rng()*0.25) * mult);
+  const price=Math.floor((85 + lvlReq*40 + def*12 + hp*1.4 + maxDur*4.0) * (0.9 + rng()*0.25) * mult);
   return { type:"armor", name, rarity, lvlReq, def, hp, maxDur, dur:maxDur, set, affixes, price };
 }
-function sellValue(it){ return Math.max(1, Math.floor((it.price||0) * 0.35)); }
+function sellValue(it){ return Math.max(1, Math.floor((it.price||0)*0.35)); }
+/* === ITEMS END === */
 
-/* =========================
-   CLASSES + COMPANIONS
-   ========================= */
+/* === CLASSES START === */
 const CLASSES=[
-  {
-    id:"bloodknight", name:"Blutritter",
-    desc:"Brutal. Macht großen Schaden und regeneriert Gesundheit.",
+  { id:"bloodknight", name:"Blutritter", desc:"Brutal. Hoher Schaden und Regeneration.",
     skills:[
-      {icon:"🩸", name:"Blutsturm", cd:3,
-       info:"Du verursachst sehr hohen Schaden. Danach regenerierst du Gesundheit anhand deines verursachten Schadens.",
-       use:()=>{ const dmg=dealPlayerDamage(1.70,"Blutsturm"); healBy(Math.floor(dmg*0.20), "Blutsturm"); }},
-      {icon:"🗡️", name:"Herzspalter", cd:5,
-       info:"Du verursachst extremen Schaden. Das Monster erleidet danach für kurze Zeit mehr Schaden.",
+      {icon:"🩸", name:"Blutsturm", cd:3, info:"Sehr hoher Schaden. Danach regenerierst du Gesundheit anhand des verursachten Schadens.",
+       use:()=>{ const dmg=dealPlayerDamage(1.70,"Blutsturm"); healBy(Math.floor(dmg*0.20),"Blutsturm"); }},
+      {icon:"🗡️", name:"Herzspalter", cd:5, info:"Extremer Schaden. Danach erleidet das Monster für kurze Zeit mehr Schaden.",
        use:()=>{ dealPlayerDamage(2.15,"Herzspalter"); applyVuln(3,0.25); }},
-      {icon:"🛡️", name:"Karminklinge", cd:6,
-       info:"Du verursachst erhöhten Schaden und erhältst kurzzeitig mehr Verteidigung.",
+      {icon:"🛡️", name:"Karminklinge", cd:6, info:"Erhöhter Schaden. Du erhältst kurzzeitig mehr Verteidigung.",
        use:()=>{ applyGuard(2,20); dealPlayerDamage(1.35,"Karminklinge"); }}
-    ]
-  },
-  {
-    id:"exorcist", name:"Exorzist",
-    desc:"Kontrolle. Schwächt Monster und schützt dich.",
+    ]},
+  { id:"exorcist", name:"Exorzist", desc:"Kontrolle. Schwächt Monster und schützt dich.",
     skills:[
-      {icon:"✝️", name:"Bannzeichen", cd:3,
-       info:"Du verursachst erhöhten Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
+      {icon:"✝️", name:"Bannzeichen", cd:3, info:"Erhöhter Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
        use:()=>{ dealPlayerDamage(1.35,"Bannzeichen"); applyWeaken(3,0.24); }},
-      {icon:"🛡️", name:"Heiliger Schutz", cd:5,
-       info:"Du erhältst kurzzeitig stark erhöhte Verteidigung und regenerierst sofort Gesundheit.",
-       use:()=>{ applyGuard(3,28); healBy(Math.floor(getMaxHp()*0.14), "Heiliger Schutz"); }},
-      {icon:"🔥", name:"Läuterndes Feuer", cd:6,
-       info:"Du verursachst hohen Schaden. Zusätzlich verliert das Monster über Zeit Gesundheit.",
+      {icon:"🛡️", name:"Heiliger Schutz", cd:5, info:"Du erhältst kurzzeitig stark erhöhte Verteidigung und regenerierst sofort Gesundheit.",
+       use:()=>{ applyGuard(3,28); healBy(Math.floor(getMaxHp()*0.14),"Heiliger Schutz"); }},
+      {icon:"🔥", name:"Läuterndes Feuer", cd:6, info:"Hoher Schaden. Zusätzlich verliert das Monster über Zeit Gesundheit.",
        use:()=>{ dealPlayerDamage(1.55,"Läuterndes Feuer"); applyBleed(3, Math.floor(8+player.lvl*1.3)); }}
-    ]
-  },
-  {
-    id:"necromancer", name:"Nekromant",
-    desc:"Zermürbt Gegner. Effekte und Lebensraub.",
+    ]},
+  { id:"necromancer", name:"Nekromant", desc:"Zermürbt Gegner. Effekte und Lebensraub.",
     skills:[
-      {icon:"☠️", name:"Knochenfluch", cd:3,
-       info:"Du verursachst erhöhten Schaden. Das Monster erleidet danach für kurze Zeit mehr Schaden.",
+      {icon:"☠️", name:"Knochenfluch", cd:3, info:"Erhöhter Schaden. Das Monster erleidet danach für kurze Zeit mehr Schaden.",
        use:()=>{ dealPlayerDamage(1.35,"Knochenfluch"); applyVuln(3,0.22); }},
-      {icon:"🕯️", name:"Seelensog", cd:5,
-       info:"Du verursachst hohen Schaden und regenerierst Gesundheit anhand des verursachten Schadens.",
-       use:()=>{ const dmg=dealPlayerDamage(1.45,"Seelensog"); healBy(Math.floor(dmg*0.35), "Seelensog"); }},
-      {icon:"🩸", name:"Grabfäule", cd:6,
-       info:"Du verursachst Schaden und setzt einen starken Effekt: Das Monster verliert über Zeit Gesundheit.",
+      {icon:"🕯️", name:"Seelensog", cd:5, info:"Hoher Schaden. Du regenerierst Gesundheit anhand des verursachten Schadens.",
+       use:()=>{ const dmg=dealPlayerDamage(1.45,"Seelensog"); healBy(Math.floor(dmg*0.35),"Seelensog"); }},
+      {icon:"🩸", name:"Grabfäule", cd:6, info:"Schaden und ein starker Effekt: Das Monster verliert über Zeit Gesundheit.",
        use:()=>{ dealPlayerDamage(1.20,"Grabfäule"); applyBleed(4, Math.floor(10+player.lvl*1.7)); }}
-    ]
-  },
-  {
-    id:"darksmith", name:"Dunkelschmied",
-    desc:"Zäh. Verstärkt sich und macht Gegner verwundbar.",
+    ]},
+  { id:"darksmith", name:"Dunkelschmied", desc:"Zäh. Verstärkt sich und macht Gegner verwundbar.",
     skills:[
-      {icon:"🔨", name:"Knochenhammer", cd:3,
-       info:"Du verursachst sehr hohen Schaden. Manchmal wird das Monster zusätzlich geschwächt.",
+      {icon:"🔨", name:"Knochenhammer", cd:3, info:"Sehr hoher Schaden. Manchmal wird das Monster zusätzlich geschwächt.",
        use:()=>{ dealPlayerDamage(1.85,"Knochenhammer"); if(Math.random()<0.35) applyWeaken(2,0.25); }},
-      {icon:"🛡️", name:"Eisenhaut", cd:5,
-       info:"Du erhältst für kurze Zeit stark erhöhte Verteidigung und regenerierst sofort Gesundheit.",
-       use:()=>{ applyGuard(3,30); healBy(Math.floor(getMaxHp()*0.12), "Eisenhaut"); }},
-      {icon:"⚙️", name:"Rüstungsbruch", cd:6,
-       info:"Du verursachst erhöhten Schaden. Das Monster erleidet danach für kurze Zeit deutlich mehr Schaden.",
+      {icon:"🛡️", name:"Eisenhaut", cd:5, info:"Stark erhöhte Verteidigung und sofortige Regeneration von Gesundheit.",
+       use:()=>{ applyGuard(3,30); healBy(Math.floor(getMaxHp()*0.12),"Eisenhaut"); }},
+      {icon:"⚙️", name:"Rüstungsbruch", cd:6, info:"Erhöhter Schaden. Das Monster erleidet danach deutlich mehr Schaden.",
        use:()=>{ dealPlayerDamage(1.35,"Rüstungsbruch"); applyVuln(3,0.28); }}
-    ]
-  },
-  {
-    id:"horrorchem", name:"Horror-Alchemist",
-    desc:"Gift und Kontrolle. Viele Effekte.",
+    ]},
+  { id:"horrorchem", name:"Horror-Alchemist", desc:"Gift und Kontrolle. Viele Effekte.",
     skills:[
-      {icon:"🧪", name:"Säurestoß", cd:3,
-       info:"Du verursachst erhöhten Schaden. Das Monster erleidet mehr Schaden und verliert zusätzlich über Zeit Gesundheit.",
+      {icon:"🧪", name:"Säurestoß", cd:3, info:"Erhöhter Schaden. Das Monster erleidet mehr Schaden und verliert zusätzlich über Zeit Gesundheit.",
        use:()=>{ dealPlayerDamage(1.35,"Säurestoß"); applyVuln(2,0.18); applyBleed(3, Math.floor(7+player.lvl*1.4)); }},
-      {icon:"💉", name:"Stimulans", cd:5,
-       info:"Du regenerierst deutlich Gesundheit und erhältst für kurze Zeit mehr Angriff.",
-       use:()=>{ healBy(Math.floor(getMaxHp()*0.22), "Stimulans"); applyBerserk(2, Math.floor(4+player.lvl*0.6)); }},
-      {icon:"☠️", name:"Schreckensmischung", cd:6,
-       info:"Du verursachst hohen Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
+      {icon:"💉", name:"Stimulans", cd:5, info:"Du regenerierst deutlich Gesundheit und erhältst für kurze Zeit mehr Angriff.",
+       use:()=>{ healBy(Math.floor(getMaxHp()*0.22),"Stimulans"); applyBerserk(2, Math.floor(4+player.lvl*0.6)); }},
+      {icon:"☠️", name:"Schreckensmischung", cd:6, info:"Hoher Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
        use:()=>{ dealPlayerDamage(1.65,"Schreckensmischung"); applyWeaken(3,0.26); }}
-    ]
-  }
+    ]},
 ];
-
 const COMPANIONS=[
   {id:"wolf", name:"Blutwolf", desc:"Mehr Angriff.", bonus:()=>({atk:2})},
   {id:"wisp", name:"Grablicht", desc:"Mehr kritische Treffer.", bonus:()=>({crit:0.03})},
-  {id:"golem", name:"Knochen-Golem", desc:"Mehr Verteidigung und Gesundheit.", bonus:()=>({def:2, hp:10})},
+  {id:"golem", name:"Knochen-Golem", desc:"Mehr Verteidigung und Gesundheit.", bonus:()=>({def:2,hp:10})},
   {id:"bat", name:"Schattenfledermaus", desc:"Mehr Lebensraub.", bonus:()=>({lifesteal:0.03})},
 ];
-
 function getClass(){ return CLASSES.find(c=>c.id===player.classId)||null; }
 function getCompanion(){ return COMPANIONS.find(c=>c.id===player.companionId)||null; }
+/* === CLASSES END === */
 
-/* =========================
-   COMPUTED STATS
-   ========================= */
+/* === STATS START === */
 function equippedSetBonus(){
   const w=player.weapon, a=player.armor;
   if(!w||!a||!w.set||!a.set) return null;
@@ -857,11 +692,9 @@ function lifestealPct(){
   const buff=(pfx.lifeStealTurns>0?pfx.lifeSteal:0);
   return clamp(aff.lifesteal + comp.lifesteal + buff, 0, 0.35);
 }
-function armorDurStr(){ return player.armor ? `${player.armor.dur}/${player.armor.maxDur}` : "—"; }
+/* === STATS END === */
 
-/* =========================
-   MONSTERS (64) – early easier
-   ========================= */
+/* === MONSTERS START === */
 const NAMES=["Fäulnis-Ghul","Aschenwurm","Knochenbeter","Frostkultist","Schlackenspinner","Rissschatten","Seelenknacker","Schnittmaul","Schädelhüter","Madenpriester","Zungenwürger","Gruftratte","Wimmergeist","Blutgargoyle","Nachtkriecher","Sargwächter","Dornenkreatur","Leichensammler","Schwarzpesthund","Sporenwirt"];
 const DESCS=[
   "Es starrt, als würde es dich von innen sehen.",
@@ -870,33 +703,23 @@ const DESCS=[
   "Die Luft um ihn herum wirkt krank.",
   "Du hörst Knochen knirschen, bevor es zuschlägt."
 ];
-
 const monsterDatabase=[];
 for(let i=0;i<64;i++){
   const lvl=1+Math.floor(i/3);
   const tier=1+Math.floor(i/10);
   const early=(lvl<=2);
-
-  const baseHp=early ? (40 + lvl*10) : (72 + lvl*22);
-  const baseAtk=early ? (4 + lvl*2.0) : (10 + lvl*3.7);
-
-  const hp=Math.floor(baseHp + i*2.8);
-  const atk=Math.floor(baseAtk + i*0.60);
-
-  const gold=Math.floor((early?9:18) + lvl*6 + i*1.2);
-  const xp=Math.floor((early?15:28) + lvl*9 + i*1.6);
-
+  const baseHp=early?(38+lvl*10):(72+lvl*22);
+  const baseAtk=early?(4+lvl*2.0):(10+lvl*3.7);
   monsterDatabase.push({
     name:`${NAMES[i%NAMES.length]} #${i+1}`,
     desc:DESCS[i%DESCS.length],
-    hp, atk, gold, xp,
-    lvl, tier,
-    portrait:i,
-    effects:newMonsterEffects(),
-    isBoss:false
+    hp:Math.floor(baseHp+i*2.6),
+    atk:Math.floor(baseAtk+i*0.55),
+    gold:Math.floor((early?10:18)+lvl*6+i*1.1),
+    xp:Math.floor((early?16:28)+lvl*9+i*1.5),
+    lvl,tier,portrait:i,effects:newMonsterEffects(),isBoss:false
   });
 }
-
 function pickMonsterByRules(){
   let pool=[];
   if(run.active){
@@ -904,39 +727,34 @@ function pickMonsterByRules(){
     const minLvl=Math.max(1, player.lvl-1);
     const maxLvl=player.lvl+1;
     pool=monsterDatabase.filter(m=>m.tier===stageTier && m.lvl>=minLvl && m.lvl<=maxLvl);
-    if(pool.length===0) pool=monsterDatabase.filter(m=>m.tier===stageTier);
+    if(!pool.length) pool=monsterDatabase.filter(m=>m.tier===stageTier);
   } else if(player.lvl>=3){
     pool=monsterDatabase.filter(m=>m.lvl===player.lvl || m.lvl===player.lvl-1);
-    if(pool.length===0) pool=monsterDatabase.filter(m=>m.lvl<=player.lvl+1);
+    if(!pool.length) pool=monsterDatabase.filter(m=>m.lvl<=player.lvl+1);
   } else {
     pool=monsterDatabase.filter(m=>m.lvl<=player.lvl+1);
   }
-  if(pool.length===0) pool=monsterDatabase;
+  if(!pool.length) pool=monsterDatabase;
   return pool[Math.floor(Math.random()*pool.length)];
 }
-
 function makeDungeonBoss(){
-  const stageTier=clamp(run.tierBase + 2, 2, 7);
-  const lvl=Math.max(3, player.lvl + 2);
+  const stageTier=clamp(run.tierBase+2,2,7);
+  const lvl=Math.max(3, player.lvl+2);
   const baseHp=720 + lvl*170 + stageTier*260;
   const baseAtk=70 + lvl*15 + stageTier*12;
   return {
     name:"Boss: Der Gruftschlächter",
     desc:"Ein kolossaler Schattenkörper. Rostige Ketten und Dornenknochen reißen durch die Dunkelheit.",
-    hp:Math.floor(baseHp*1.25),
-    atk:Math.floor(baseAtk*1.10),
-    gold:Math.floor((260 + lvl*140 + stageTier*170)*2.2),
-    xp:Math.floor((240 + lvl*160 + stageTier*170)*2.2),
-    lvl, tier:stageTier,
-    portrait:7,
-    effects:newMonsterEffects(),
-    isBoss:true
+    hp:Math.floor(baseHp*1.15),
+    atk:Math.floor(baseAtk*1.05),
+    gold:Math.floor((260+lvl*140+stageTier*170)*2.0),
+    xp:Math.floor((240+lvl*160+stageTier*170)*2.0),
+    lvl,tier:stageTier,portrait:7,effects:newMonsterEffects(),isBoss:true
   };
 }
+/* === MONSTERS END === */
 
-/* =========================
-   EFFECT HELPERS
-   ========================= */
+/* === EFFECTS START === */
 function applyVuln(turns,pct){
   monster.effects.vulnTurns=Math.max(monster.effects.vulnTurns, turns);
   monster.effects.vulnPct=Math.max(monster.effects.vulnPct, pct);
@@ -962,35 +780,55 @@ function applyBerserk(turns,atk){
   pfx.berserkAtk=Math.max(pfx.berserkAtk, atk);
   log(`Dein Angriff ist für kurze Zeit erhöht.`, "cInfo");
 }
-function healBy(amount, label){
+function healBy(amount,label){
   const maxHp=getMaxHp();
   const before=currentHp;
-  const heal=Math.max(0, Math.floor(amount));
-  currentHp=Math.min(maxHp, currentHp+heal);
+  const heal=Math.max(0,Math.floor(amount));
+  currentHp=Math.min(maxHp,currentHp+heal);
   const gained=currentHp-before;
   if(gained>0) log(`${label}: +<b>${fmt(gained)}</b> Gesundheit.`, "cOk");
 }
+/* === EFFECTS END === */
 
-/* =========================
-   INVENTORY
-   ========================= */
+/* === INVENTORY START === */
+function addToInvOrDrop(it){
+  if(player.inv.length>=INV_CAP){
+    log("Loot fällt zu Boden… dein Inventar ist voll.", "cBad");
+    return false;
+  }
+  player.inv.unshift(it);
+  return true;
+}
+function tryDrop(context){
+  const chance=(context==="boss")?0.45:(context==="dungeon")?0.12:LOOT_CHANCE;
+  if(Math.random()>chance) return null;
+
+  const rng=mulberry32(xfnv1a(`${Date.now()}::drop::L${player.lvl}::${Math.random()}`));
+  const lvl=Math.max(1, player.lvl + (context!=="normal"?1:0));
+  const it=(rng()<0.52)?makeWeapon(rng,lvl,context==="boss"?"boss":"drop")
+                      :makeArmor(rng,lvl,context==="boss"?"boss":"drop");
+  if(addToInvOrDrop(it)){
+    log(`LOOT! Du findest: <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
+    return it;
+  }
+  return null;
+}
 function renderInventory(){
   const invEl=document.getElementById("inventory");
   const info=document.getElementById("invInfo");
   info.innerHTML=`Plätze: <b>${player.inv.length}/${INV_CAP}</b>`;
   invEl.innerHTML="";
 
-  if(player.inv.length===0){
+  if(!player.inv.length){
     invEl.innerHTML=`<div class="mut">Noch kein Loot. Besiege Monster oder laufe einen Dungeon.</div>`;
     return;
   }
-
   player.inv.forEach((it, idx)=>{
-    const stats = it.type==="weapon"
+    const stats=it.type==="weapon"
       ? `Angriff +${it.atk} · Mindestlevel ${it.lvlReq}`
       : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur} · Mindestlevel ${it.lvlReq}`;
-    const set = it.set ? ` · Set: ${it.set}` : "";
-    const aff = (it.affixes && it.affixes.length) ? ` · Zusatzwerte: ${affixSummary(it)}` : "";
+    const set=it.set?` · Set: ${it.set}`:"";
+    const aff=(it.affixes&&it.affixes.length)?` · Zusatzwerte: ${affixSummary(it)}`:"";
     const row=document.createElement("div");
     row.className="itemRow";
     row.innerHTML=`
@@ -1002,26 +840,21 @@ function renderInventory(){
       <div class="itBtns">
         <button class="btnEquip" onclick="equipItem(${idx})">Ausrüsten</button>
         <button class="btnSell" onclick="sellItem(${idx})">Verkaufen</button>
-      </div>
-    `;
+      </div>`;
     invEl.appendChild(row);
   });
 }
-
 function equipItem(idx){
   const it=player.inv[idx];
   if(!it) return;
-  if(player.lvl < it.lvlReq){
-    log(`Du brauchst mindestens Level ${it.lvlReq} für "${it.name}".`, "cBad");
-    return;
-  }
+  if(player.lvl<it.lvlReq){ log(`Du brauchst mindestens Level ${it.lvlReq} für "${it.name}".`, "cBad"); return; }
   if(it.type==="weapon"){
     if(player.weapon) player.inv.push(player.weapon);
     player.weapon=it;
-  } else {
+  }else{
     if(player.armor) player.inv.push(player.armor);
     player.armor=it;
-    currentHp=Math.min(currentHp, getMaxHp());
+    currentHp=Math.min(currentHp,getMaxHp());
   }
   player.inv.splice(idx,1);
   log(`Ausgerüstet: <b>${it.name}</b> ${rarityTag(it.rarity)}`, "cInfo");
@@ -1036,549 +869,47 @@ function sellItem(idx){
   log(`Verkauft: ${it.name} (+${fmt(g)} Gold)`, "cGold");
   updateUI();
 }
-
-function openInventory(){
-  const w=player.weapon;
-  const a=player.armor;
-  openPopup("Ausrüstung & Inventar",
-    `<div class="mut">Du kannst Items rechts ausrüsten oder verkaufen.</div>
-     <div style="margin-top:10px;">
-       <div><b>Waffe:</b> ${w? `${w.name} ${rarityTag(w.rarity)}`:"—"}</div>
-       <div><b>Rüstung:</b> ${a? `${a.name} ${rarityTag(a.rarity)} (Haltbarkeit ${a.dur}/${a.maxDur})`:"—"}</div>
-     </div>
-     <div class="mut" style="margin-top:10px;">Set-Bonus gilt nur, wenn Waffe und Rüstung aus demselben Set stammen.</div>`
-  );
-}
-
 function equippedSetBonusText(){
   const s=equippedSetBonus();
   if(!s) return "—";
   return `${s.name} (Angriff +${s.bonus.atk}, Verteidigung +${s.bonus.def}%, Gesundheit +${s.bonus.hp})`;
 }
+function openInventory(){
+  const w=player.weapon, a=player.armor;
+  openPopup("Ausrüstung & Inventar",
+    `<div class="mut">Du kannst Items rechts ausrüsten oder verkaufen.</div>
+     <div style="margin-top:10px;">
+       <div><b>Waffe:</b> ${w?`${w.name} ${rarityTag(w.rarity)}`:"—"}</div>
+       <div><b>Rüstung:</b> ${a?`${a.name} ${rarityTag(a.rarity)} (Haltbarkeit ${a.dur}/${a.maxDur})`:"—"}</div>
+     </div>
+     <div class="mut" style="margin-top:10px;">Set-Bonus gilt nur, wenn Waffe und Rüstung aus demselben Set stammen.</div>`,
+    `<button onclick="closePopup()">Zurück</button>`
+  );
+}
+/* === INVENTORY END === */
 
-/* =========================
-   REPAIR
-   ========================= */
+/* === REPAIR START === */
 function repairCost(){
   if(!player.armor) return null;
   const missing=player.armor.maxDur - player.armor.dur;
-  if(missing<=0) return {missing:0, cost:0};
-  const cost = player.armor.lvlReq * 4 * missing;
-  return {missing, cost};
+  if(missing<=0) return {missing:0,cost:0};
+  const cost=player.armor.lvlReq * 4 * missing;
+  return {missing,cost};
 }
 function repairArmor(){
   if(!player.armor) return;
   const rc=repairCost();
   if(!rc || rc.missing<=0){ log("Deine Rüstung ist bereits vollständig repariert.", "cInfo"); return; }
-  if(player.gold < rc.cost){ log("Nicht genug Gold für die Reparatur.", "cBad"); return; }
-  player.gold -= rc.cost;
-  player.armor.dur = player.armor.maxDur;
+  if(player.gold<rc.cost){ log("Nicht genug Gold für die Reparatur.", "cBad"); return; }
+  player.gold-=rc.cost;
+  player.armor.dur=player.armor.maxDur;
   log(`Rüstung repariert: <b>${player.armor.name}</b>`, "cGold");
   updateUI();
   openSmith();
 }
+/* === REPAIR END === */
 
-/* =========================
-   LOOT
-   ========================= */
-function addToInvOrDrop(it){
-  if(player.inv.length >= INV_CAP){
-    log("Loot fällt zu Boden… dein Inventar ist voll.", "cBad");
-    return false;
-  }
-  player.inv.unshift(it);
-  return true;
-}
-function tryDrop(context){
-  const chance = (context==="boss") ? 0.45 : (context==="dungeon" ? 0.12 : LOOT_CHANCE);
-  if(Math.random() > chance) return null;
-
-  const seedStr = `${Date.now()}::drop::L${player.lvl}::${Math.random()}`;
-  const rng = mulberry32(xfnv1a(seedStr));
-  const lvl = Math.max(1, player.lvl + (context!=="normal"?1:0));
-  const it = (rng() < 0.52) ? makeWeapon(rng, lvl, context==="boss"?"boss":"drop")
-                           : makeArmor(rng, lvl, context==="boss"?"boss":"drop");
-  if(addToInvOrDrop(it)){
-    log(`LOOT! Du findest: <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
-    return it;
-  }
-  return null;
-}
-
-/* =========================
-   COMBAT CORE
-   ========================= */
-function startFight(m){
-  monster=JSON.parse(JSON.stringify(m));
-  monster.maxHp=monster.hp;
-  monster.effects=monster.effects||newMonsterEffects();
-
-  isInBattle=true;
-  fightTracker={ monsterName: monster.name, dmgDealt:0, dmgTaken:0, loot:null, isBoss: !!monster.isBoss };
-
-  document.getElementById("monster-name").innerText=monster.name;
-  document.getElementById("monster-desc").innerText=monster.desc;
-  document.getElementById("monster-tier").innerText=`${monster.isBoss ? "Boss" : "Tier"} ${monster.tier} · Level ${monster.lvl}`;
-  setPortraitIndex(monster.portrait ?? 0);
-
-  hidePostFight();
-  log(`Ein neuer Schrecken erhebt sich: <b>${monster.name}</b>.`, monster.isBoss ? "cBad" : "cInfo");
-  updateUI();
-}
-
-function applyMonsterDOT(){
-  if(monster.effects.bleedTurns>0 && monster.hp>0){
-    const dmg=monster.effects.bleedDmg;
-    monster.hp -= dmg;
-    fightTracker.dmgDealt += dmg;
-    log(`Schaden über Zeit: <b>${fmt(dmg)}</b> Gesundheit verliert ${monster.name}.`, "cOk");
-  }
-}
-
-function isCritRoll(chance){ return Math.random() < chance; }
-
-function dealPlayerDamage(mult=1.0,label="Angriff"){
-  let base=(getAtk() + Math.random()*6) * mult;
-  if(monster.effects.vulnTurns>0) base *= (1 + monster.effects.vulnPct);
-
-  const crit=isCritRoll(0.05 + (critChance()-BASE_CRIT));
-  if(crit){
-    base *= CRIT_MULT;
-    log(`<span class="cCrit">Kritischer Treffer!</span>`, "cCrit");
-  }
-
-  const dmg=Math.floor(base);
-  monster.hp -= dmg;
-  fightTracker.dmgDealt += dmg;
-
-  const ls=lifestealPct();
-  if(ls>0){
-    const heal=Math.floor(dmg * ls);
-    if(heal>0) healBy(heal, "Lebensraub");
-  }
-
-  log(`Du triffst <b>${monster.name}</b> für <b>${fmt(dmg)}</b> (${label}).`, "cOk");
-  return dmg;
-}
-
-function degradeArmorOnMonsterCrit(){
-  if(!player.armor) return;
-  player.armor.dur -= 1;
-  log(`Deine Rüstung wird beschädigt. Haltbarkeit -1 (<b>${player.armor.dur}/${player.armor.maxDur}</b>).`, "cBad");
-  if(player.armor.dur <= 0){
-    log(`<b>ZERSTÖRT!</b> Deine Rüstung "${player.armor.name}" zerbricht und verschwindet.`, "cBad");
-    player.armor=null;
-    currentHp=Math.min(currentHp, getMaxHp());
-  }
-}
-
-function monsterAttack(){
-  if(monster.hp<=0) return;
-
-  let atk=monster.atk;
-  if(monster.effects.weakenTurns>0) atk *= (1 - monster.effects.weakenPct);
-
-  let raw=atk + Math.floor(Math.random()*6);
-  const crit=isCritRoll(0.05);
-  if(crit){
-    raw *= CRIT_MULT;
-    log(`<span class="cCrit">Monster: Kritischer Treffer!</span>`, "cCrit");
-    degradeArmorOnMonsterCrit();
-  }
-
-  const dmg=Math.max(1, Math.floor(raw * (1 - getDefPct()/100)));
-  currentHp -= dmg;
-  fightTracker.dmgTaken += dmg;
-  log(`<b>${monster.name}</b> trifft dich für <b>${fmt(dmg)}</b>.`, "cBad");
-  if(currentHp<=0) die();
-}
-
-function tickAfterPlayerTurn(){
-  if(pfx.guardTurns>0) pfx.guardTurns--;
-  if(pfx.berserkTurns>0) pfx.berserkTurns--;
-  if(pfx.critBonusTurns>0) pfx.critBonusTurns--;
-  if(pfx.lifeStealTurns>0) pfx.lifeStealTurns--;
-
-  if(monster.effects.vulnTurns>0) monster.effects.vulnTurns--;
-  if(monster.effects.weakenTurns>0) monster.effects.weakenTurns--;
-  if(monster.effects.bleedTurns>0) monster.effects.bleedTurns--;
-
-  applyMonsterDOT();
-}
-
-function endPlayerTurnAndMonsterActs(){
-  tickAfterPlayerTurn();
-  if(monster.hp>0) monsterAttack();
-  updateUI();
-}
-
-function reduceCooldowns(){
-  for(const k of [1,2,3]) if(skillCD[k]>0) skillCD[k]--;
-}
-
-function currentSkills(){
-  const c=getClass();
-  return c ? c.skills : CLASSES[0].skills;
-}
-
-function showSkillInfo(n){
-  const s=currentSkills()[n-1];
-  openPopup(`${s.icon} ${s.name}`,
-    `<div>${s.info}</div>
-     <div class="mut" style="margin-top:10px;">Abklingzeit: <b>${s.cd}</b> Züge. Skills verbrauchen deine Runde.</div>`
-  );
-}
-
-function useSkill(n){
-  if(!isInBattle || monster.hp<=0){ log("Kein aktiver Kampf.", "cInfo"); return; }
-  if(skillCD[n]>0){ log("Dieser Skill ist noch nicht wieder bereit.", "cInfo"); return; }
-
-  reduceCooldowns();
-
-  const s=currentSkills()[n-1];
-  log(`<b>${s.icon} ${s.name}</b>!`, "cInfo");
-  s.use();
-  skillCD[n]=s.cd;
-
-  if(monster.hp<=0){ win(); updateUI(); return; }
-  endPlayerTurnAndMonsterActs();
-}
-
-function playerAttack(){
-  if(!isInBattle || monster.hp<=0){ log("Kein aktiver Kampf.", "cInfo"); return; }
-  reduceCooldowns();
-  dealPlayerDamage(1.0, "Angriff");
-  if(monster.hp<=0){ win(); return; }
-  endPlayerTurnAndMonsterActs();
-}
-
-/* =========================
-   POTIONS + ALCHEMY
-   ========================= */
-function usePotion(inCombat){
-  const maxHp=getMaxHp();
-  if(player.potions<=0){ log("Keine Tränke mehr!", "cBad"); return; }
-  if(currentHp>=maxHp){ log("Du bist bereits vollständig geheilt.", "cInfo"); return; }
-  player.potions--;
-  const heal=Math.floor(maxHp*0.30);
-  currentHp=Math.min(maxHp, currentHp+heal);
-  log(`Trank benutzt! +${fmt(heal)} Gesundheit.`, "cOk");
-
-  if(inCombat && isInBattle && monster.hp>0){
-    log(`Du verbrauchst deine Runde durch das Trinken.`, "cInfo");
-    endPlayerTurnAndMonsterActs();
-  }
-  updateUI();
-}
-
-const ALCHEMY_GOODS=[
-  {id:"potion", name:"Heiltrank", price:50, desc:"Du erhältst einen Heiltrank.", buy:()=>{ player.potions++; }},
-  {id:"greater", name:"Großer Heiltrank", price:110, desc:"Du erhältst zwei Heiltränke.", buy:()=>{ player.potions+=2; }},
-  {id:"oil", name:"Kritisches Öl", price:140, desc:"Deine kritischen Treffer sind für kurze Zeit wahrscheinlicher.", buy:()=>{ pfx.critBonusTurns=Math.max(pfx.critBonusTurns,3); pfx.critBonus=Math.max(pfx.critBonus,0.06); }},
-  {id:"tonic", name:"Energie-Tonikum", price:160, desc:"Du erhältst sofort Energie zurück.", buy:()=>{ player.energy=Math.min(player.maxEnergy, player.energy+2); }},
-  {id:"serum", name:"Lebensraub-Serum", price:180, desc:"Du regenerierst kurzzeitig mehr Gesundheit durch Lebensraub.", buy:()=>{ pfx.lifeStealTurns=Math.max(pfx.lifeStealTurns,3); pfx.lifeSteal=Math.max(pfx.lifeSteal,0.06); }},
-];
-
-function openAlchemy(){
-  let html=`<div class="mut">Hier findest du Tränke und alchemistische Mischungen.</div><div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">`;
-  for(const g of ALCHEMY_GOODS){
-    html+=`
-      <div style="border:1px solid #333; background:#070707; padding:10px; border-radius:16px;">
-        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-          <div>
-            <div><b>${g.name}</b></div>
-            <div class="mut">${g.desc}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="mut">Preis</div>
-            <div style="font-weight:900; color:var(--gold);">${fmt(g.price)} Gold</div>
-          </div>
-        </div>
-        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
-          <button class="btnBuy" onclick="buyAlchemy('${g.id}')">Kaufen</button>
-        </div>
-      </div>`;
-  }
-  html+=`</div>`;
-  openPopup("Alchemieladen", html);
-}
-function buyAlchemy(id){
-  const g=ALCHEMY_GOODS.find(x=>x.id===id);
-  if(!g) return;
-  if(player.gold<g.price){ log("Nicht genug Gold.", "cBad"); return; }
-  player.gold-=g.price;
-  g.buy();
-  log(`Gekauft: <b>${g.name}</b>.`, "cGold");
-  updateUI();
-  openAlchemy();
-}
-
-/* =========================
-   LEVEL UP
-   ========================= */
-function levelUpCheck(){
-  while(player.xp>=player.xpToNext){
-    player.lvl++;
-    player.xp-=player.xpToNext;
-    player.xpToNext=Math.floor(player.xpToNext*1.4);
-    player.baseHp+=18;
-    player.baseAtk+=3;
-    if(player.lvl%3===0) player.maxEnergy=Math.min(20, player.maxEnergy+1);
-    player.energy=Math.min(player.maxEnergy, player.energy+1);
-    currentHp=getMaxHp();
-    log(`<b>LEVEL AUFSTIEG!</b> Du bist jetzt Level ${player.lvl}.`, "cXp");
-  }
-}
-
-/* =========================
-   POSTFIGHT
-   ========================= */
-function hidePostFight(){ document.getElementById("postFight").style.display="none"; }
-function showPostFight(summary){
-  const el=document.getElementById("postFight");
-  document.getElementById("summaryText").innerHTML=`
-    <div>Ergebnis: <span class="hl">${summary.result}</span>${summary.isBoss?` <span class="cCrit">(Boss)</span>`:""}</div>
-    <div>Gegner: <span class="hl">${summary.monsterName}</span></div>
-    <div>Schaden: Du verursacht <span class="hl">${fmt(summary.dmgDealt)}</span> · Du erhalten <span class="hl">${fmt(summary.dmgTaken)}</span></div>
-    <div>Belohnung: <span class="hl">${fmt(summary.goldGained)} Gold</span> · <span class="hl">${fmt(summary.xpGained)} Erfahrungspunkte</span>${summary.lootName?` · Loot: <span class="hl">${summary.lootName}</span>`:""}</div>
-    <div>Status: Gesundheit <span class="hl">${fmt(summary.hpAfter)}</span> / <span class="hl">${fmt(getMaxHp())}</span> · Level <span class="hl">${player.lvl}</span></div>
-    <div class="mut" style="margin-top:6px;">Was willst du tun?</div>
-  `;
-  el.style.display="block";
-}
-function pfNextFight(){ hidePostFight(); spawnMonster(); }
-function pfExitDungeon(){ hidePostFight(); exitDungeon(true); }
-function pfUsePotion(){ usePotion(false); }
-
-/* =========================
-   WIN / DIE
-   ========================= */
-function endCombatToIdle(){
-  isInBattle=false;
-  monster=makeIdleMonster();
-  document.getElementById("monster-name").innerText=monster.name;
-  document.getElementById("monster-desc").innerText=monster.desc;
-  document.getElementById("monster-tier").innerText="";
-  setPortraitIndex(0);
-}
-function win(){
-  isInBattle=false;
-
-  let goldGained=monster.gold||0;
-  let xpGained=monster.xp||0;
-
-  if(run.active){
-    goldGained=Math.floor(goldGained*(1.12+run.stage*0.06));
-    xpGained=Math.floor(xpGained*(1.14+run.stage*0.08));
-  }
-
-  player.gold+=goldGained;
-  player.xp+=xpGained;
-  levelUpCheck();
-
-  const ctx = monster.isBoss ? "boss" : (run.active ? "dungeon" : "normal");
-  const loot=tryDrop(ctx);
-
-  showPostFight({
-    result:"Sieg",
-    monsterName: monster.name,
-    isBoss: !!monster.isBoss,
-    dmgDealt: fightTracker?.dmgDealt||0,
-    dmgTaken: fightTracker?.dmgTaken||0,
-    goldGained, xpGained,
-    lootName: loot ? `${loot.name} (${loot.rarity})` : null,
-    hpAfter: Math.max(0,currentHp)
-  });
-
-  if(run.active){
-    if(monster.isBoss){
-      run.chestReady=true;
-      run.chestSeed = `chest::${weekKey()}::${Date.now()}::L${player.lvl}`;
-      run.chestLoot = generateChestLoot(run.chestSeed);
-      document.getElementById("openChestBtn").style.display="inline-flex";
-      log("Der Boss ist gefallen. Eine Truhe erscheint.", "cInfo");
-    } else {
-      run.stage++;
-      if(run.stage>=run.total) run.stage=run.total-1;
-    }
-  }
-
-  endCombatToIdle();
-  updateUI();
-}
-function die(){
-  isInBattle=false;
-  const lost=Math.floor(player.gold*0.2);
-  player.gold-=lost;
-  currentHp=getMaxHp();
-  log(`<b>DU BIST GEFALLEN!</b> Du verlierst ${fmt(lost)} Gold.`, "cBad");
-
-  showPostFight({
-    result:"Niederlage",
-    monsterName: monster.name,
-    isBoss: !!monster.isBoss,
-    dmgDealt: fightTracker?.dmgDealt||0,
-    dmgTaken: fightTracker?.dmgTaken||0,
-    goldGained: -lost,
-    xpGained: 0,
-    lootName: null,
-    hpAfter: currentHp
-  });
-
-  endCombatToIdle();
-  updateUI();
-}
-
-/* =========================
-   ENERGY
-   ========================= */
-function energyCostFor(action){
-  if(action==="fight") return 1;
-  if(action==="dungeon") return 3;
-  return 0;
-}
-function hasEnergy(cost){ return player.energy>=cost; }
-function spendEnergy(cost){ player.energy=Math.max(0, player.energy-cost); }
-
-/* =========================
-   SPAWN / FIGHT START
-   ========================= */
-function spawnMonster(){
-  if(run.chestReady){
-    log("Du hast noch eine Truhe offen. Öffne sie oder verlasse den Dungeon.", "cInfo");
-    return;
-  }
-  if(isInBattle && monster.hp>0){
-    log("Du bist bereits im Kampf.", "cInfo");
-    return;
-  }
-  const cost=energyCostFor("fight");
-  if(!run.active){
-    if(!hasEnergy(cost)){ log("Du hast keine Energie mehr.", "cBad"); return; }
-    spendEnergy(cost);
-  }
-  const nextIsBoss = (run.active && run.stage === run.total-1);
-  let base = nextIsBoss ? makeDungeonBoss() : pickMonsterByRules();
-
-  if(run.active && !base.isBoss){
-    const stageMult=1 + run.stage*0.22;
-    base={...base};
-    base.hp=Math.floor(base.hp*stageMult);
-    base.atk=Math.floor(base.atk*(1 + run.stage*0.12));
-    base.gold=Math.floor(base.gold*(1 + run.stage*0.12));
-    base.xp=Math.floor(base.xp*(1 + run.stage*0.14));
-    base.desc = "Die Luft flimmert. Der Dungeon presst die Finsternis in diesen Körper.";
-  }
-  startFight(base);
-}
-
-/* =========================
-   DUNGEON RUN (exit fixed)
-   ========================= */
-function startDungeon(){
-  if(run.active){
-    log("Du bist bereits in einem Dungeon-Run.", "cInfo");
-    return;
-  }
-  const cost=energyCostFor("dungeon");
-  if(!hasEnergy(cost)){ log("Du hast nicht genug Energie für einen Dungeon-Run.", "cBad"); return; }
-  spendEnergy(cost);
-
-  run.active=true;
-  run.stage=0;
-  run.total=6;
-  run.tierBase = clamp(2 + Math.floor(player.lvl/3), 2, 6);
-  run.chestReady=false;
-  run.chestLoot=null;
-  run.chestSeed="";
-
-  document.getElementById("exitDungeonBtn").style.display="inline-flex";
-  document.getElementById("openChestBtn").style.display="none";
-
-  log(`Dungeon-Run gestartet. Du kannst jederzeit den Dungeon verlassen.`, "cInfo");
-  updateUI();
-  hidePostFight();
-  spawnMonster();
-}
-
-function exitDungeon(showMsg){
-  run.active=false;
-  run.stage=0;
-  run.chestReady=false;
-  run.chestLoot=null;
-  run.chestSeed="";
-
-  document.getElementById("exitDungeonBtn").style.display="none";
-  document.getElementById("openChestBtn").style.display="none";
-
-  if(isInBattle){
-    isInBattle=false;
-    endCombatToIdle();
-  }
-  hidePostFight();
-  if(showMsg) log("Du verlässt den Dungeon und kehrst in Sicherheit zurück.", "cInfo");
-  updateUI();
-}
-
-function generateChestLoot(seedStr){
-  const rng=mulberry32(xfnv1a(seedStr));
-  const loot=[];
-  const count=3 + (rng()<0.5?1:0);
-  for(let i=0;i<count;i++){
-    const lvl = player.lvl + 1 + Math.floor(rng()*3);
-    const it = (rng()<0.5) ? makeWeapon(rng,lvl,"boss") : makeArmor(rng,lvl,"boss");
-    loot.push(it);
-  }
-  return loot;
-}
-
-function openDungeonChest(){
-  if(!run.chestReady || !run.chestLoot){
-    log("Keine Truhe verfügbar.", "cInfo");
-    return;
-  }
-  let html=`<div class="mut">Du öffnest die Truhe. Wähle, was du mit den Gegenständen machst.</div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">`;
-
-  run.chestLoot.forEach((it, idx)=>{
-    const stats = it.type==="weapon"
-      ? `Angriff +${it.atk} · Mindestlevel ${it.lvlReq}`
-      : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur} · Mindestlevel ${it.lvlReq}`;
-    html += `
-      <div style="border:1px solid #333; background:#070707; padding:10px; border-radius:16px;">
-        <div><b>${it.name}</b> ${rarityTag(it.rarity)}</div>
-        <div class="mut">${it.type==="weapon"?"Waffe":"Rüstung"} · ${stats}${it.set?` · Set: ${it.set}`:""}</div>
-        <div class="mut">${it.affixes?.length?`Zusatzwerte: ${affixSummary(it)}`:"Zusatzwerte: —"}</div>
-        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
-          <button class="btnBuy" onclick="takeChestItem(${idx})">Nehmen</button>
-        </div>
-      </div>`;
-  });
-
-  html += `</div><div class="mut" style="margin-top:10px;">Wenn du fertig bist, kannst du den Dungeon verlassen.</div>`;
-  openPopup("Dungeon-Truhe", html);
-}
-
-function takeChestItem(idx){
-  const it=run.chestLoot[idx];
-  if(!it) return;
-  if(addToInvOrDrop(it)){
-    log(`Du nimmst aus der Truhe: <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
-  }
-  run.chestLoot.splice(idx,1);
-  if(run.chestLoot.length===0){
-    run.chestReady=false;
-    run.chestLoot=null;
-    document.getElementById("openChestBtn").style.display="none";
-    log("Die Truhe ist leer.", "cInfo");
-  }
-  updateUI();
-  openDungeonChest();
-}
-
-/* =========================
-   SHOPS
-   ========================= */
+/* === SHOPS START === */
 function ensureDailyShop(){
   const key=dayKey();
   if(shopDaily.key===key && shopDaily.weapons.length===50 && shopDaily.armors.length===50) return;
@@ -1587,409 +918,934 @@ function ensureDailyShop(){
   shopDaily.key=key;
   shopDaily.weapons=[];
   shopDaily.armors=[];
-  for(let i=0;i<50;i++){
-    const lvl = Math.max(1, Math.floor(1 + rng()*(player.lvl+6)));
-    shopDaily.weapons.push(makeWeapon(rng, lvl, "smith"));
-  }
-  for(let i=0;i<50;i++){
-    const lvl = Math.max(1, Math.floor(1 + rng()*(player.lvl+6)));
-    shopDaily.armors.push(makeArmor(rng, lvl, "smith"));
-  }
-}
 
+  for(let i=0;i<50;i++){
+    const lvl=Math.max(1, Math.floor(1 + rng()*(player.lvl+6)));
+    shopDaily.weapons.push(makeWeapon(rng,lvl,"smith"));
+  }
+  for(let i=0;i<50;i++){
+    const lvl=Math.max(1, Math.floor(1 + rng()*(player.lvl+6)));
+    shopDaily.armors.push(makeArmor(rng,lvl,"smith"));
+  }
+
+  function forceCheap(list,count){
+    const sorted=[...list].sort((a,b)=>a.price-b.price);
+    const take=Math.min(count,sorted.length);
+    for(let i=0;i<take;i++){
+      const it=sorted[i];
+      const target=120 + Math.floor(rng()*76); // 120..195
+      it.price=Math.max(1, Math.min(it.price,target));
+    }
+  }
+  forceCheap(shopDaily.weapons,2);
+  forceCheap(shopDaily.armors,2);
+}
 function ensureWeeklyShop(){
   const key=weekKey();
-  if(shopWeekly.key===key && shopWeekly.items.length>0) return;
+  if(shopWeekly.key===key && shopWeekly.items.length===30) return;
 
   const rng=mulberry32(xfnv1a(`weekly::${key}::seed`));
   shopWeekly.key=key;
   shopWeekly.items=[];
-  const count=22;
 
-  for(let i=0;i<count;i++){
-    const lvl = Math.max(1, player.lvl + Math.floor((rng()*10)-2));
-    const it = (rng()<0.5) ? makeWeapon(rng, lvl, "weekly") : makeArmor(rng, lvl, "weekly");
-    it.price = Math.floor(it.price * 1.12);
+  const maxLvl=Math.max(player.lvl+10, 12);
+  for(let i=0;i<30;i++){
+    const lvl=Math.max(1, Math.floor(1 + rng()*maxLvl));
+    const it=(rng()<0.52)?makeWeapon(rng,lvl,"weekly"):makeArmor(rng,lvl,"weekly");
+    it.price=Math.floor(it.price*1.15);
     shopWeekly.items.push(it);
   }
 }
 
-function filterShopForLevel(items, type){
-  const min = Math.max(1, player.lvl-1);
-  const max = player.lvl+2;
-  const pool = items.filter(it => it.type===type && it.lvlReq>=min && it.lvlReq<=max);
-  if(pool.length>=3) return pool;
-  const pool2 = items.filter(it => it.type===type && it.lvlReq<=player.lvl+4);
-  return pool2.length?pool2:items.filter(it=>it.type===type);
-}
-
-function shopRowHtml(it, buyFn){
-  const stats = it.type==="weapon"
-    ? `Angriff +${it.atk} · Mindestlevel ${it.lvlReq}`
-    : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur} · Mindestlevel ${it.lvlReq}`;
-  return `
-    <div style="border:1px solid #333; background:#070707; padding:10px; border-radius:16px;">
-      <div style="display:flex; gap:10px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
-        <div style="flex:1; min-width:260px;">
-          <div><b>${it.name}</b> ${rarityTag(it.rarity)}</div>
-          <div class="mut">${it.type==="weapon"?"Waffe":"Rüstung"} · ${stats}${it.set?` · Set: ${it.set}`:""}</div>
-          <div class="mut">${it.affixes?.length?`Zusatzwerte: ${affixSummary(it)}`:"Zusatzwerte: —"}</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mut">Preis</div>
-          <div style="font-weight:900; color:var(--gold);">${fmt(it.price)} Gold</div>
-          <div class="mut">Dein Gold: ${fmt(player.gold)}</div>
-        </div>
-      </div>
-      <div style="margin-top:8px; display:flex; justify-content:flex-end;">
-        <button class="btnBuy" onclick="${buyFn}">Kaufen</button>
-      </div>
-    </div>`;
-}
-
 function openSmith(){
   ensureDailyShop();
-
-  const wList=filterShopForLevel(shopDaily.weapons, "weapon").slice(0,12);
-  const aList=filterShopForLevel(shopDaily.armors, "armor").slice(0,12);
-
-  let html=`<div class="mut">Der Schmied bietet täglich neue Waren an. Heute: <b>${shopDaily.key}</b>.</div>`;
-
   const rc=repairCost();
-  if(player.armor && rc){
-    html += `
-      <div style="margin-top:10px; border:1px solid #333; background:#070707; padding:10px; border-radius:16px;">
-        <div><b>Reparatur</b></div>
-        <div class="mut">Deine ausgerüstete Rüstung: <b>${player.armor.name}</b> (Haltbarkeit ${player.armor.dur}/${player.armor.maxDur})</div>
-        <div class="mut">Kosten: <b style="color:var(--gold);">${fmt(rc.cost)} Gold</b></div>
-        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
-          <button class="btnRepair" onclick="repairArmor()">Reparieren</button>
+
+  const lvlMin=Math.max(1, player.lvl-1);
+  const lvlMax=player.lvl+3;
+
+  const wList=shopDaily.weapons.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax).slice(0,20);
+  const aList=shopDaily.armors.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax).slice(0,20);
+
+  const wShow=(wList.length>=3)?wList:shopDaily.weapons.slice(0,20);
+  const aShow=(aList.length>=3)?aList:shopDaily.armors.slice(0,20);
+
+  const rows=(arr,type)=>arr.map((it,idx)=>{
+    const canBuy = player.gold>=it.price;
+    const canUse = player.lvl>=it.lvlReq;
+    const stats=type==="weapon"
+      ? `Angriff +${it.atk} · Mindestlevel ${it.lvlReq}`
+      : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur} · Mindestlevel ${it.lvlReq}`;
+    const set=it.set?` · Set: ${it.set}`:"";
+    const aff=(it.affixes&&it.affixes.length)?` · Zusatzwerte: ${affixSummary(it)}`:"";
+    return `
+      <div class="itemRow">
+        <div class="itMeta">
+          <b>${it.name}</b> ${rarityTag(it.rarity)}
+          <div class="sub">${type==="weapon"?"Waffe":"Rüstung"} · ${stats}${set}${aff}</div>
+          <div class="sub">Preis: ${fmt(it.price)} Gold</div>
+        </div>
+        <div class="itBtns">
+          <button class="btnBuy" ${(!canBuy?'disabled':'')} onclick="buyFromSmith('${type}', ${idx})">Kaufen</button>
+          <button class="btnSmall" ${(!canUse?'disabled':'')} onclick="previewEquip('${type}', ${idx})">Vergleichen</button>
         </div>
       </div>`;
-  }
+  }).join("");
 
-  html += `<div style="margin-top:12px;"><b>Waffen</b></div><div style="margin-top:8px; display:flex; flex-direction:column; gap:10px;">`;
-  wList.forEach((it, idx)=>{ html += shopRowHtml(it, `buySmithWeapon(${idx})`); });
-  html += `</div><div style="margin-top:14px;"><b>Rüstungen</b></div><div style="margin-top:8px; display:flex; flex-direction:column; gap:10px;">`;
-  aList.forEach((it, idx)=>{ html += shopRowHtml(it, `buySmithArmor(${idx})`); });
-  html += `</div>`;
+  const repairBlock = player.armor
+    ? `<div class="itemRow" style="border-color:#1b6a4a">
+        <div class="itMeta">
+          <b>Reparatur</b>
+          <div class="sub">Ausgerüstete Rüstung: ${player.armor.name} (Haltbarkeit ${player.armor.dur}/${player.armor.maxDur})</div>
+          <div class="sub">${(rc&&rc.missing>0)?`Fehlende Haltbarkeit: ${rc.missing} · Kosten: ${fmt(rc.cost)} Gold`:"Deine Rüstung ist vollständig repariert."}</div>
+        </div>
+        <div class="itBtns">
+          <button class="btnRepair" ${(rc&&rc.missing>0 && player.gold>=rc.cost)?'':'disabled'} onclick="repairArmor()">Reparieren</button>
+        </div>
+      </div>`
+    : `<div class="mut">Keine Rüstung ausgerüstet.</div>`;
 
-  openPopup("Schmied", html);
+  openPopup("Schmied (täglich neu, mit Seed)",
+    `<div class="mut">Angebot für heute: ${shopDaily.key}. (Scrollen möglich)</div>
+     <div style="margin-top:10px;">
+       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Reparatur</div>
+       ${repairBlock}
+     </div>
+
+     <div style="margin-top:14px;">
+       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Waffen</div>
+       ${rows(wShow,"weapon")}
+     </div>
+
+     <div style="margin-top:14px;">
+       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Rüstungen</div>
+       ${rows(aShow,"armor")}
+     </div>
+    `,
+    `<button onclick="closePopup()">Zurück</button>`
+  );
 }
 
-function buySmithWeapon(idx){
-  ensureDailyShop();
-  const wList=filterShopForLevel(shopDaily.weapons, "weapon").slice(0,12);
-  const it=wList[idx];
+function buyFromSmith(type, shownIdx){
+  const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
+  const source=(type==="weapon")?shopDaily.weapons:shopDaily.armors;
+  const filtered=source.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax);
+  const list=(filtered.length>=3)?filtered.slice(0,20):source.slice(0,20);
+  const it=list[shownIdx];
   if(!it) return;
-  buyItem(it, "Schmied");
+
+  if(player.gold<it.price){ log("Nicht genug Gold.", "cBad"); return; }
+  if(player.inv.length>=INV_CAP){ log("Inventar voll.", "cBad"); return; }
+
+  player.gold-=it.price;
+  player.inv.unshift(JSON.parse(JSON.stringify(it)));
+  log(`Gekauft: <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
+  updateUI();
   openSmith();
 }
-function buySmithArmor(idx){
-  ensureDailyShop();
-  const aList=filterShopForLevel(shopDaily.armors, "armor").slice(0,12);
-  const it=aList[idx];
+
+function previewEquip(type, shownIdx){
+  const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
+  const source=(type==="weapon")?shopDaily.weapons:shopDaily.armors;
+  const filtered=source.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax);
+  const list=(filtered.length>=3)?filtered.slice(0,20):source.slice(0,20);
+  const it=list[shownIdx];
   if(!it) return;
-  buyItem(it, "Schmied");
-  openSmith();
+
+  const cur=(type==="weapon")?player.weapon:player.armor;
+  const curTxt=cur?`${cur.name} ${rarityTag(cur.rarity)}`:"—";
+  const newTxt=`${it.name} ${rarityTag(it.rarity)}`;
+  const curStats=cur? (type==="weapon"
+      ? `Angriff +${cur.atk}`
+      : `Verteidigung ${cur.def}% · Gesundheit +${cur.hp} · Haltbarkeit ${cur.dur}/${cur.maxDur}`) : "—";
+  const newStats=(type==="weapon"
+      ? `Angriff +${it.atk}`
+      : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur}`);
+
+  openPopup("Vergleich",
+    `<div><b>Aktuell:</b> ${curTxt}</div>
+     <div class="mut">${curStats}</div>
+     <div style="margin-top:10px;"><b>Neu:</b> ${newTxt}</div>
+     <div class="mut">${newStats}</div>
+     <div class="mut" style="margin-top:10px;">Zusatzwerte: ${affixSummary(it)}</div>`,
+    `<button onclick="openSmith()">Zurück zum Schmied</button> <button onclick="closePopup()">Schließen</button>`
+  );
 }
 
 function openWeekly(){
   ensureWeeklyShop();
-  const items=shopWeekly.items;
+  const rows=shopWeekly.items.map((it,idx)=>{
+    const canBuy=player.gold>=it.price;
+    const stats=it.type==="weapon"
+      ? `Angriff +${it.atk} · Mindestlevel ${it.lvlReq}`
+      : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur} · Mindestlevel ${it.lvlReq}`;
+    const set=it.set?` · Set: ${it.set}`:"";
+    const aff=(it.affixes&&it.affixes.length)?` · Zusatzwerte: ${affixSummary(it)}`:"";
+    return `
+      <div class="itemRow">
+        <div class="itMeta">
+          <b>${it.name}</b> ${rarityTag(it.rarity)}
+          <div class="sub">${it.type==="weapon"?"Waffe":"Rüstung"} · ${stats}${set}${aff}</div>
+          <div class="sub">Preis: ${fmt(it.price)} Gold</div>
+        </div>
+        <div class="itBtns">
+          <button class="btnBuy" ${(!canBuy?'disabled':'')} onclick="buyWeekly(${idx})">Kaufen</button>
+        </div>
+      </div>`;
+  }).join("");
 
-  let html=`<div class="mut">Der Weekly-Shop wechselt wöchentlich. Diese Woche: <b>${shopWeekly.key}</b>.</div>
-            <div class="mut" style="margin-top:6px;">Hier findest du auch Gegenstände, die über deinem Level liegen. Du kannst sie kaufen, aber erst später anlegen.</div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">`;
-
-  items.forEach((it, idx)=>{ html += shopRowHtml(it, `buyWeekly(${idx})`); });
-
-  html += `</div>`;
-  openPopup("Weekly-Shop", html);
+  openPopup("Weekly-Shop (wöchentlich neu, mit Seed)",
+    `<div class="mut">Woche: ${shopWeekly.key}. Im Weekly-Shop findest du auch Items für höhere Level.</div>
+     <div style="margin-top:10px;">${rows}</div>`,
+    `<button onclick="closePopup()">Zurück</button>`
+  );
 }
-
 function buyWeekly(idx){
-  ensureWeeklyShop();
   const it=shopWeekly.items[idx];
   if(!it) return;
-  buyItem(it, "Weekly-Shop");
+  if(player.gold<it.price){ log("Nicht genug Gold.", "cBad"); return; }
+  if(player.inv.length>=INV_CAP){ log("Inventar voll.", "cBad"); return; }
+  player.gold-=it.price;
+  player.inv.unshift(JSON.parse(JSON.stringify(it)));
+  log(`Gekauft: <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
+  updateUI();
   openWeekly();
 }
 
-function buyItem(it, source){
-  if(player.gold < it.price){ log("Nicht genug Gold.", "cBad"); return; }
-  if(player.inv.length >= INV_CAP){ log("Inventar voll.", "cBad"); return; }
-  player.gold -= it.price;
-  player.inv.unshift(JSON.parse(JSON.stringify(it)));
-  log(`Gekauft (${source}): <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
+const ALCHEMY_ITEMS=[
+  {id:"potion", name:"Bluttrank", desc:"Regeneriert 30% deiner maximalen Gesundheit.", price:50, buy:()=>{player.potions++;}},
+  {id:"ether", name:"Seelenäther", desc:"Regeneriert 3 Energie (bis maximal).", price:90, buy:()=>{player.energy=Math.min(player.maxEnergy, player.energy+3);}},
+  {id:"ward", name:"Schutzsalz", desc:"Erhöht deine Verteidigung für kurze Zeit.", price:120, buy:()=>{applyGuard(2,18);}},
+  {id:"fury", name:"Zornessenz", desc:"Erhöht deinen Angriff für kurze Zeit.", price:140, buy:()=>{applyBerserk(2,4);}},
+];
+function openAlchemy(){
+  const rows=ALCHEMY_ITEMS.map((it,idx)=>{
+    const canBuy=player.gold>=it.price;
+    return `
+      <div class="itemRow">
+        <div class="itMeta">
+          <b>${it.name}</b>
+          <div class="sub">${it.desc}</div>
+          <div class="sub">Preis: ${fmt(it.price)} Gold</div>
+        </div>
+        <div class="itBtns">
+          <button class="btnBuy" ${(!canBuy?'disabled':'')} onclick="buyAlchemy(${idx})">Kaufen</button>
+        </div>
+      </div>`;
+  }).join("");
+  openPopup("Alchemieladen",
+    `<div class="mut">Hier bekommst du Tränke und dunkle Hilfsmittel.</div>
+     <div style="margin-top:10px;">${rows}</div>`,
+    `<button onclick="closePopup()">Zurück</button>`
+  );
+}
+function buyAlchemy(idx){
+  const it=ALCHEMY_ITEMS[idx];
+  if(!it) return;
+  if(player.gold<it.price){ log("Nicht genug Gold.", "cBad"); return; }
+  player.gold-=it.price;
+  it.buy();
+  log(`Gekauft: <b>${it.name}</b>.`, "cGold");
+  updateUI();
+  openAlchemy();
+}
+/* === SHOPS END === */
+
+/* === COMBAT START === */
+function beginFight(m){
+  monster=JSON.parse(JSON.stringify(m));
+  monster.maxHp=monster.hp;
+  monster.effects=monster.effects||newMonsterEffects();
+
+  isInBattle=true;
+  fightTracker={ monsterName:monster.name, dmgDealt:0, dmgTaken:0, loot:null, isBoss:!!monster.isBoss, gold:0, xp:0 };
+
+  document.getElementById("monster-name").innerText=monster.name;
+  document.getElementById("monster-desc").innerText=monster.desc;
+  document.getElementById("monster-tier").innerText = monster.isBoss ? `Boss · Tier ${monster.tier} · Level ${monster.lvl}` : `Tier ${monster.tier} · Level ${monster.lvl}`;
+  setPortraitIndex(monster.portrait||0);
+
+  document.getElementById("attackBtn").disabled=false;
+  updateCombatPotionBtn();
   updateUI();
 }
 
-/* =========================
-   SKILLS UI + FX UI
-   ========================= */
-function renderFx(){
-  const fx=[];
-  if(monster.effects?.vulnTurns>0) fx.push({t:"Verwundbar", v:`mehr Schaden (${monster.effects.vulnTurns})`});
-  if(monster.effects?.weakenTurns>0) fx.push({t:"Geschwächt", v:`weniger Schaden (${monster.effects.weakenTurns})`});
-  if(monster.effects?.bleedTurns>0) fx.push({t:"Schaden über Zeit", v:`(${monster.effects.bleedTurns})`});
-  const el=document.getElementById("fxIcons");
-  el.innerHTML=fx.map(x=>`<span class="fx"><b>${x.t}</b> ${x.v}</span>`).join("");
-}
-function updateSkillsUI(){
-  const skills=currentSkills();
-  function setBtn(n,tId,cdId,btnId){
-    const b=document.getElementById(btnId);
-    const s=skills[n-1];
-    const cd=skillCD[n];
-    document.getElementById(tId).innerText=`${s.icon} ${s.name}`;
-    document.getElementById(cdId).innerText=cd>0?`bereit in ${cd}`:"bereit";
-    b.disabled=!(isInBattle && monster.hp>0 && cd<=0);
-    b.setAttribute("data-tip", s.info);
+function spawnMonster(){
+  hidePostFight();
+  if(run.active){
+    document.getElementById("exitDungeonBtn").style.display="inline-flex";
+    document.getElementById("dungeonBtn").disabled=true;
+    document.getElementById("nextBtn").disabled=true;
+
+    if(run.stage>=run.total){
+      beginFight(makeDungeonBoss());
+      document.getElementById("runInfo").innerText=`Dungeon: Boss-Kampf`;
+    } else {
+      const m=pickMonsterByRules();
+      beginFight(m);
+      document.getElementById("runInfo").innerText=`Dungeon: Raum ${run.stage+1}/${run.total}`;
+    }
+  } else {
+    document.getElementById("exitDungeonBtn").style.display="none";
+    document.getElementById("dungeonBtn").disabled=false;
+    document.getElementById("nextBtn").disabled=false;
+
+    const m=pickMonsterByRules();
+    beginFight(m);
+    document.getElementById("runInfo").innerText="";
   }
-  setBtn(1,"s1t","s1cd","skill1");
-  setBtn(2,"s2t","s2cd","skill2");
-  setBtn(3,"s3t","s3cd","skill3");
 }
 
-/* =========================
-   UI UPDATE
-   ========================= */
-function updateUI(){
-  const maxHp=getMaxHp();
+function endFight(victory){
+  isInBattle=false;
+  document.getElementById("attackBtn").disabled=true;
+  updateCombatPotionBtn();
 
-  document.getElementById("lvl").innerText=player.lvl;
-  document.getElementById("xp").innerText=`${fmt(player.xp)} / ${fmt(player.xpToNext)}`;
-  document.getElementById("hp").innerText=`${fmt(Math.max(0,currentHp))} / ${fmt(maxHp)}`;
-  document.getElementById("atk").innerText=fmt(getAtk());
-  document.getElementById("def").innerText=`${getDefPct()}%`;
-  document.getElementById("gold").innerText=fmt(player.gold);
-  document.getElementById("potion-count").innerText=player.potions;
-  document.getElementById("energy").innerText=`${player.energy}/${player.maxEnergy}`;
+  if(pfx.guardTurns>0) pfx.guardTurns--;
+  if(pfx.berserkTurns>0) pfx.berserkTurns--;
+  if(pfx.critBonusTurns>0) pfx.critBonusTurns--;
+  if(pfx.lifeStealTurns>0) pfx.lifeStealTurns--;
 
-  const cur=Math.max(0, Math.floor(monster.hp ?? 0));
-  const max=Math.max(1, Math.floor(monster.maxHp ?? 1));
-  document.getElementById("monster-hp-text").innerText = (isInBattle && max>0) ? `${fmt(cur)} / ${fmt(max)}` : "—";
-  document.getElementById("monster-hp-bar").style.width = (isInBattle && max>0) ? `${clamp((cur/max)*100,0,100)}%` : "0%";
+  for(const k of [1,2,3]) if(skillCD[k]>0) skillCD[k]--;
 
-  const canPotion=(player.potions>0 && currentHp<maxHp);
-  document.getElementById("heal-btn").disabled=!canPotion;
+  monster.effects=newMonsterEffects();
 
-  const combatBtn=document.getElementById("combatPotionBtn");
-  combatBtn.style.display=(isInBattle && monster.hp>0) ? "inline-flex" : "none";
-  combatBtn.disabled=!canPotion;
-
-  document.getElementById("attackBtn").disabled=!(isInBattle && monster.hp>0);
-
-  document.getElementById("exitDungeonBtn").style.display = run.active ? "inline-flex" : "none";
-  document.getElementById("openChestBtn").style.display = run.chestReady ? "inline-flex" : "none";
-
-  document.getElementById("runInfo").innerText = run.active
-    ? `Dungeon-Run: Stufe ${run.stage+1} von ${run.total}${run.chestReady ? " · Truhe verfügbar" : ""}`
-    : "";
-
-  const w=player.weapon, a=player.armor;
-  document.getElementById("eqLine").innerText = `Waffe: ${w? w.name:"—"} · Rüstung: ${a? a.name:"—"}`;
-  document.getElementById("eqStats").innerText =
-    `Angriff +${w?.atk||0} · Verteidigung +${a?.def||0}% · Gesundheit +${a?.hp||0}`;
-  document.getElementById("eqAff").innerText =
-    `Zusatzwerte: ${(w?.affixes?.length||a?.affixes?.length) ? (affixSummary(w||{affixes:[]})+" · "+affixSummary(a||{affixes:[]})).replace("— · —","—") : "—"}`;
-  document.getElementById("eqSet").innerText = `Set-Bonus: ${equippedSetBonusText()}`;
-  document.getElementById("eqDur").innerText = `Haltbarkeit: ${armorDurStr()}`;
-
-  document.getElementById("classLine").innerText = `Klasse: ${getClass()?.name || "—"}`;
-  document.getElementById("compLine").innerText = `Begleiter: ${getCompanion()?.name || "—"}`;
-
-  renderFx();
-  updateSkillsUI();
-  renderInventory();
-
+  showPostFight(victory);
   saveGame();
 }
 
-/* =========================
-   CLASS / COMPANION PICKERS
-   ========================= */
-function openClassPicker(startFlow){
-  let html=`<div class="mut">Wähle deine Klasse. Jede Klasse hat drei Skills.</div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">`;
-  for(const c of CLASSES){
-    const active=(player.classId===c.id);
-    html+=`
-      <div style="border:1px solid #333; background:#070707; padding:10px; border-radius:16px;">
-        <div><b>${c.name}</b> ${active?`<span class="tag leg">ausgewählt</span>`:""}</div>
-        <div class="mut">${c.desc}</div>
-        <div class="mut" style="margin-top:6px;">Skills: ${c.skills.map(s=>`${s.icon} ${s.name}`).join(" · ")}</div>
-        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
-          <button class="btnBuy" onclick="selectClass('${c.id}', ${startFlow?'true':'false'})">Wählen</button>
-        </div>
-      </div>`;
+function applyTurnEffects(){
+  if(monster.effects.bleedTurns>0){
+    const dmg=monster.effects.bleedDmg;
+    monster.hp-=dmg;
+    monster.effects.bleedTurns--;
+    log(`Der Effekt frisst das Monster: -${fmt(dmg)} Gesundheit.`, "cInfo");
+    if(monster.hp<=0) return "monster_dead";
   }
-  html+=`</div>`;
-  openPopup("Klasse wählen", html, startFlow ? `<button class="btnExit" disabled>Weiter</button>` : null);
-}
-function selectClass(id, startFlow){
-  player.classId=id;
-  log(`Klasse gewählt: <b>${getClass().name}</b>`, "cInfo");
-  updateUI();
-  if(startFlow){ closePopup(); openCompanionPicker(true); }
-  else openClassPicker(false);
+  if(monster.effects.vulnTurns>0) monster.effects.vulnTurns--;
+  if(monster.effects.weakenTurns>0) monster.effects.weakenTurns--;
+  return "ok";
 }
 
-function openCompanionPicker(startFlow){
-  let html=`<div class="mut">Wähle deinen Begleiter. Der Bonus ist dauerhaft aktiv.</div>
-            <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">`;
-  for(const c of COMPANIONS){
-    const active=(player.companionId===c.id);
-    html+=`
-      <div style="border:1px solid #333; background:#070707; padding:10px; border-radius:16px;">
-        <div><b>${c.name}</b> ${active?`<span class="tag leg">ausgewählt</span>`:""}</div>
-        <div class="mut">${c.desc}</div>
-        <div style="margin-top:8px; display:flex; justify-content:flex-end;">
-          <button class="btnBuy" onclick="selectCompanion('${c.id}', ${startFlow?'true':'false'})">Wählen</button>
-        </div>
-      </div>`;
+function calcPlayerDamageBase(){
+  const atk=getAtk();
+  const roll=Math.floor(Math.random()*5);
+  return Math.max(1, atk + roll);
+}
+function calcMonsterDamageBase(){
+  const roll=Math.floor(Math.random()*4);
+  return Math.max(1, monster.atk + roll);
+}
+function dealPlayerDamage(mult,label){
+  if(!isInBattle || monster.hp<=0) return 0;
+
+  let dmg=Math.floor(calcPlayerDamageBase()*mult);
+
+  if(monster.effects.vulnTurns>0) dmg=Math.floor(dmg*(1+monster.effects.vulnPct));
+
+  const isCrit=Math.random()<critChance();
+  if(isCrit){
+    dmg=Math.floor(dmg*CRIT_MULT);
+    log(`<span class="cCrit">Kritischer Treffer!</span> ${label}: ${fmt(dmg)} Schaden.`, "cCrit");
+  } else {
+    log(`${label}: ${fmt(dmg)} Schaden.`, "cInfo");
   }
-  html+=`</div>`;
-  openPopup("Begleiter wählen", html, startFlow ? `<button class="btnExit" disabled>Fertig</button>` : null);
-}
-function selectCompanion(id, startFlow){
-  player.companionId=id;
-  log(`Begleiter gewählt: <b>${getCompanion().name}</b>`, "cInfo");
-  updateUI();
-  if(startFlow){
-    closePopup();
-    log("Start abgeschlossen. Du bist bereit.", "cInfo");
-  } else openCompanionPicker(false);
+
+  monster.hp-=dmg;
+  fightTracker.dmgDealt+=dmg;
+
+  const ls=lifestealPct();
+  if(ls>0){
+    const heal=Math.floor(dmg*ls);
+    if(heal>0) healBy(heal, "Lebensraub");
+  }
+
+  return dmg;
 }
 
-/* =========================
-   TUTORIAL
-   ========================= */
-function askTutorial(){
-  openPopup("Tutorial",
-    `<div>Willst du ein Tutorial sehen?</div>
-     <div class="mut" style="margin-top:8px;">
-       Das Tutorial erklärt Angriff, Tränke, Skills, Loot, den Schmied, Haltbarkeit, den Weekly-Shop und den Dungeon-Run.
-     </div>`,
-    `<button class="btnBuy" onclick="runTutorial()">Ja</button>
-     <button class="btnExit" onclick="closePopup(); startFlow()">Nein</button>`
-  );
-}
-function runTutorial(){
-  openPopup("Tutorial: Kampf",
-    `<div><b>Angriff</b>: Du greifst das aktuelle Monster an. Danach greift das Monster zurück.</div>
-     <div style="margin-top:8px;"><b>Trank benutzen</b>: Du regenerierst Gesundheit. Im Kampf verbraucht das Trinken deine Runde.</div>
-     <div style="margin-top:8px;"><b>Kritischer Treffer</b>: Manchmal verursacht ein Angriff deutlich mehr Schaden.</div>`,
-    `<button class="btnBuy" onclick="tutorial2()">Weiter</button>`
-  );
-}
-function tutorial2(){
-  openPopup("Tutorial: Skills",
-    `<div><b>Skills</b>: Deine Klasse hat drei Skills.</div>
-     <div style="margin-top:8px;">Fahre mit der Maus über einen Skill, um zu lesen, was er macht.</div>
-     <div style="margin-top:8px;">Ein Skill verbraucht ebenfalls deine Runde.</div>`,
-    `<button class="btnBuy" onclick="tutorial3()">Weiter</button>`
-  );
-}
-function tutorial3(){
-  openPopup("Tutorial: Loot und Ausrüstung",
-    `<div><b>Loot</b>: Nach Kämpfen kann ein Gegenstand fallen.</div>
-     <div style="margin-top:8px;"><b>Ausrüstung</b>: Waffen erhöhen deinen Angriff. Rüstungen erhöhen Verteidigung und Gesundheit.</div>
-     <div style="margin-top:8px;"><b>Set-Bonus</b>: Wenn Waffe und Rüstung aus demselben Set stammen, erhältst du zusätzliche Werte.</div>`,
-    `<button class="btnBuy" onclick="tutorial4()">Weiter</button>`
-  );
-}
-function tutorial4(){
-  openPopup("Tutorial: Schmied, Haltbarkeit, Shops",
-    `<div><b>Schmied</b>: Der Schmied bietet jeden Tag neue Waffen und Rüstungen an.</div>
-     <div style="margin-top:8px;"><b>Haltbarkeit</b>: Rüstungen können beschädigt werden. Wenn die Haltbarkeit auf null fällt, ist die Rüstung zerstört.</div>
-     <div style="margin-top:8px;"><b>Reparieren</b>: Beim Schmied kannst du eine beschädigte Rüstung reparieren.</div>
-     <div style="margin-top:8px;"><b>Weekly-Shop</b>: Dort findest du besondere Waren, auch für höhere Level.</div>`,
-    `<button class="btnBuy" onclick="closePopup(); startFlow()">Fertig</button>`
-  );
+function playerAttack(){
+  if(!isInBattle || monster.hp<=0) return;
+
+  let dmg=calcPlayerDamageBase();
+
+  if(monster.effects.vulnTurns>0) dmg=Math.floor(dmg*(1+monster.effects.vulnPct));
+
+  const isCrit=Math.random()<critChance();
+  if(isCrit){
+    dmg=Math.floor(dmg*CRIT_MULT);
+    log(`<span class="cCrit">Kritischer Treffer!</span> Du triffst ${monster.name} für ${fmt(dmg)}.`, "cCrit");
+  } else {
+    log(`Du triffst ${monster.name} für ${fmt(dmg)} Schaden.`, "cOk");
+  }
+
+  monster.hp-=dmg;
+  fightTracker.dmgDealt+=dmg;
+
+  const ls=lifestealPct();
+  if(ls>0){
+    const heal=Math.floor(dmg*ls);
+    if(heal>0) healBy(heal, "Lebensraub");
+  }
+
+  if(monster.hp<=0){
+    winFight();
+    return;
+  }
+
+  monsterTurn();
 }
 
-/* =========================
-   START FLOW
-   ========================= */
-function startFlow(){
-  openClassPicker(true);
-}
+function monsterTurn(){
+  if(!isInBattle || monster.hp<=0) return;
 
-/* =========================
-   REGEN LOOP
-   ========================= */
-let lastRegenHpAt=Date.now();
-let lastRegenEnergyAt=Date.now();
-function isOutOfCombat(){
-  const postVisible=document.getElementById("postFight").style.display==="block";
-  return (!isInBattle) || postVisible;
-}
-function regenTick(){
-  const now=Date.now();
+  const dot=applyTurnEffects();
+  if(dot==="monster_dead"){ winFight(); return; }
 
-  if(isOutOfCombat()){
-    const maxHp=getMaxHp();
-    if(currentHp < maxHp){
-      const elapsed=now-lastRegenHpAt;
-      const steps=Math.floor(elapsed/15000);
-      if(steps>0){
-        currentHp=Math.min(maxHp, currentHp+steps);
-        lastRegenHpAt += steps*15000;
+  let dmg=calcMonsterDamageBase();
+
+  if(monster.effects.weakenTurns>0) dmg=Math.floor(dmg*(1-monster.effects.weakenPct));
+
+  const def=getDefPct();
+  dmg=Math.max(1, Math.floor(dmg*(1-def/100)));
+
+  const mCrit=(Math.random()<BASE_CRIT);
+  if(mCrit){
+    dmg=Math.floor(dmg*CRIT_MULT);
+    log(`<span class="cCrit">Kritischer Treffer!</span> ${monster.name} trifft dich für ${fmt(dmg)}.`, "cCrit");
+
+    if(player.armor){
+      player.armor.dur -= 1;
+      log(`Deine Rüstung nimmt Schaden: Haltbarkeit ${player.armor.dur}/${player.armor.maxDur}.`, "cBad");
+      if(player.armor.dur<=0){
+        log(`<b>${player.armor.name}</b> ist zerstört und verschwindet aus deinem Inventar.`, "cBad");
+        player.armor=null;
       }
-    } else lastRegenHpAt=now;
-  } else lastRegenHpAt=now;
-
-  if(player.energy < player.maxEnergy){
-    const elapsedE=now-lastRegenEnergyAt;
-    const stepsE=Math.floor(elapsedE/45000);
-    if(stepsE>0){
-      player.energy=Math.min(player.maxEnergy, player.energy+stepsE);
-      lastRegenEnergyAt += stepsE*45000;
     }
-  } else lastRegenEnergyAt=now;
+  } else {
+    log(`${monster.name} trifft dich für ${fmt(dmg)}.`, "cBad");
+  }
+
+  currentHp-=dmg;
+  fightTracker.dmgTaken+=dmg;
+
+  if(currentHp<=0){
+    dieFight();
+    return;
+  }
 
   updateUI();
 }
 
-/* =========================
-   INIT
-   ========================= */
-window.onload=function(){
-  applySprite();
+function winFight(){
+  isInBattle=false;
 
-  const loaded=loadGame();
-  ensureDailyShop();
-  ensureWeeklyShop();
+  const g=monster.gold||0;
+  const x=monster.xp||0;
+  player.gold+=g;
+  player.xp+=x;
 
-  document.getElementById("exitDungeonBtn").style.display = run.active ? "inline-flex" : "none";
-  document.getElementById("openChestBtn").style.display = run.chestReady ? "inline-flex" : "none";
+  fightTracker.gold=g;
+  fightTracker.xp=x;
 
-  if(!isInBattle || !monster || monster.hp<=0){
-    isInBattle=false;
+  log(`Sieg! +${fmt(g)} Gold, +${fmt(x)} Erfahrungspunkte.`, "cGold");
+
+  const loot=tryDrop(monster.isBoss?"boss":(run.active?"dungeon":"normal"));
+  fightTracker.loot=loot;
+
+  while(player.xp>=player.xpToNext){
+    player.xp-=player.xpToNext;
+    player.lvl++;
+    player.xpToNext=Math.floor(player.xpToNext*1.4);
+    player.baseHp+=20;
+    player.baseAtk+=4;
+    currentHp=getMaxHp();
+    log(`LEVEL AUFSTIEG! Du bist jetzt Level ${player.lvl}.`, "cXp");
+  }
+
+  if(run.active){
+    if(monster.isBoss){
+      run.active=false;
+      run.stage=0;
+      run.chestReady=true;
+      run.chestSeed=`chest::${Date.now()}::${Math.random()}`;
+      document.getElementById("openChestBtn").style.display="inline-flex";
+      document.getElementById("exitDungeonBtn").style.display="none";
+      document.getElementById("dungeonBtn").disabled=false;
+      document.getElementById("nextBtn").disabled=false;
+      log("Der Boss fällt. Eine Truhe erscheint.", "cInfo");
+    } else {
+      run.stage++;
+      if(run.stage>=run.total){
+        log("Du spürst eine Präsenz… Der Boss wartet.", "cInfo");
+      }
+    }
+  }
+
+  updateUI();
+  endFight(true);
+}
+
+function dieFight(){
+  isInBattle=false;
+  const lost=Math.floor(player.gold*0.2);
+  player.gold=Math.max(0, player.gold-lost);
+  currentHp=getMaxHp();
+  log(`Du bist gefallen und verlierst ${fmt(lost)} Gold.`, "cBad");
+
+  if(run.active){
+    run.active=false;
+    run.stage=0;
+    document.getElementById("exitDungeonBtn").style.display="none";
+    document.getElementById("dungeonBtn").disabled=false;
+    document.getElementById("nextBtn").disabled=false;
+  }
+
+  updateUI();
+  endFight(false);
+}
+
+function usePotion(inCombat){
+  if(player.potions<=0){ log("Keine Tränke mehr.", "cBad"); return; }
+  const maxHp=getMaxHp();
+  if(currentHp>=maxHp){ log("Du bist bereits vollständig geheilt.", "cInfo"); return; }
+
+  player.potions--;
+  const heal=Math.floor(maxHp*0.30);
+  currentHp=Math.min(maxHp, currentHp+heal);
+  log(`Trank benutzt: +${fmt(heal)} Gesundheit.`, "cOk");
+  updateUI();
+
+  if(inCombat && isInBattle){
+    monsterTurn();
+  }
+}
+
+function updateCombatPotionBtn(){
+  const btn=document.getElementById("combatPotionBtn");
+  if(isInBattle && player.potions>0 && currentHp<getMaxHp()){
+    btn.style.display="inline-flex";
+  } else {
+    btn.style.display="none";
+  }
+}
+
+function useSkill(n){
+  const cls=getClass();
+  if(!cls){ log("Wähle zuerst eine Klasse.", "cBad"); openClassPicker(false); return; }
+  if(!isInBattle || monster.hp<=0){ log("Kein aktiver Kampf.", "cInfo"); return; }
+  if(skillCD[n]>0){ log("Skill ist noch nicht bereit.", "cBad"); return; }
+  if(player.energy<=0){ log("Nicht genug Energie.", "cBad"); return; }
+
+  player.energy = Math.max(0, player.energy-2);
+
+  const s=cls.skills[n-1];
+  skillCD[n]=s.cd;
+
+  log(`<b>${s.name}</b> wird eingesetzt.`, "cInfo");
+  s.use();
+
+  if(monster.hp<=0){
+    winFight();
+    return;
+  }
+
+  monsterTurn();
+}
+
+function showSkillInfo(n){
+  const cls=getClass();
+  if(!cls) return;
+  const s=cls.skills[n-1];
+  openPopup("Skill-Info", `<div><b>${s.icon} ${s.name}</b></div><div class="mut" style="margin-top:8px;">${s.info}</div>`, `<button onclick="closePopup()">Schließen</button>`);
+}
+/* === COMBAT END === */
+
+/* === DUNGEON START === */
+function startDungeon(){
+  hidePostFight();
+  if(isInBattle){ log("Du bist bereits im Kampf.", "cBad"); return; }
+  run.active=true;
+  run.stage=0;
+  document.getElementById("openChestBtn").style.display="none";
+  document.getElementById("exitDungeonBtn").style.display="inline-flex";
+  spawnMonster();
+}
+function exitDungeon(fromButton){
+  run.active=false;
+  run.stage=0;
+  document.getElementById("exitDungeonBtn").style.display="none";
+  document.getElementById("dungeonBtn").disabled=false;
+  document.getElementById("nextBtn").disabled=false;
+  log("Du verlässt den Dungeon-Run.", "cInfo");
+  updateUI();
+  if(fromButton){
     monster=makeIdleMonster();
+    isInBattle=false;
     document.getElementById("monster-name").innerText=monster.name;
     document.getElementById("monster-desc").innerText=monster.desc;
     document.getElementById("monster-tier").innerText="";
+    document.getElementById("runInfo").innerText="";
     setPortraitIndex(0);
+    updateUI();
+  }
+}
+function openDungeonChest(){
+  if(!run.chestReady){ log("Keine Truhe bereit.", "cBad"); return; }
+  run.chestReady=false;
+  document.getElementById("openChestBtn").style.display="none";
+
+  const rng=mulberry32(xfnv1a(run.chestSeed||`${Date.now()}`));
+  const lootCount=2 + (rng()<0.35?1:0);
+  const found=[];
+  for(let i=0;i<lootCount;i++){
+    const lvl=Math.max(1, player.lvl + 2 + Math.floor(rng()*4));
+    const it=(rng()<0.5)?makeWeapon(rng,lvl,"boss"):makeArmor(rng,lvl,"boss");
+    if(addToInvOrDrop(it)) found.push(it);
+  }
+  log("Du öffnest die Truhe.", "cGold");
+  found.forEach(it=>log(`Truhe: <b>${it.name}</b> ${rarityTag(it.rarity)}`, "cGold"));
+  updateUI();
+}
+/* === DUNGEON END === */
+
+/* === POSTFIGHT START === */
+function showPostFight(victory){
+  const pf=document.getElementById("postFight");
+  const st=document.getElementById("summaryText");
+
+  const loot = fightTracker?.loot ? `${fightTracker.loot.name} ${rarityTag(fightTracker.loot.rarity)}` : "Kein Loot.";
+  const title = victory ? "Du hast gewonnen." : "Du hast verloren.";
+  const mode = run.active ? `Dungeon-Raum: ${Math.min(run.stage, run.total)}/${run.total}` : "Freier Kampf";
+
+  st.innerHTML = `
+    <div><span class="hl">${title}</span></div>
+    <div class="mut" style="margin-top:6px;">Modus: ${mode}</div>
+    <div class="mut" style="margin-top:6px;">
+      Schaden verursacht: <b>${fmt(fightTracker?.dmgDealt||0)}</b> ·
+      Schaden erhalten: <b>${fmt(fightTracker?.dmgTaken||0)}</b>
+    </div>
+    <div class="mut" style="margin-top:6px;">Belohnung: <b>${fmt(fightTracker?.gold||0)}</b> Gold · <b>${fmt(fightTracker?.xp||0)}</b> Erfahrungspunkte</div>
+    <div class="mut" style="margin-top:6px;">Loot: ${loot}</div>
+  `;
+
+  pf.style.display="block";
+  updateUI();
+}
+function hidePostFight(){ document.getElementById("postFight").style.display="none"; }
+function pfNextFight(){ closePopup(); spawnMonster(); }
+function pfUsePotion(){ usePotion(false); }
+function pfExitDungeon(){
+  if(run.active) exitDungeon(true);
+  hidePostFight();
+}
+/* === POSTFIGHT END === */
+
+/* === NAME START === */
+function openNameChange(){
+  openPopup("Name ändern",
+    `<div><b>Wie lautet dein Name?</b></div>
+     <div class="mut" style="margin-top:8px;">Der Name wird im Profil angezeigt und gespeichert.</div>
+     <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+       <input id="playerNameEdit" type="text" maxlength="18" value="${(player.name||"").replace(/"/g,'&quot;')}" placeholder="Zum Beispiel: Mika" style="flex:1;min-width:220px;">
+     </div>`,
+    `<button class="btnBuy" onclick="saveNameFromEdit()">Speichern</button>
+     <button onclick="closePopup()">Abbrechen</button>`
+  );
+  setTimeout(()=>{
+    const inp=document.getElementById("playerNameEdit");
+    if(inp){ inp.focus(); inp.select(); inp.addEventListener("keydown",(e)=>{ if(e.key==="Enter") saveNameFromEdit(); }); }
+  },50);
+}
+function saveNameFromEdit(){
+  const inp=document.getElementById("playerNameEdit");
+  const raw=(inp?.value||"").trim();
+  player.name = raw ? raw : "Unbekannt";
+  log(`Name gesetzt: <b>${player.name}</b>.`, "cInfo");
+  closePopup();
+  updateUI();
+}
+/* === NAME END === */
+
+/* === UI START === */
+function updateUI(){
+  document.getElementById("buildLine").innerText=`Build: ${BUILD_INFO.name} v${BUILD_INFO.version} (${BUILD_INFO.build})`;
+
+  document.getElementById("lvl").innerText=player.lvl;
+  document.getElementById("xp").innerText=`${fmt(player.xp)} / ${fmt(player.xpToNext)}`;
+  document.getElementById("hp").innerText=`${fmt(currentHp)}/${fmt(getMaxHp())}`;
+  document.getElementById("atk").innerText=fmt(getAtk());
+  document.getElementById("def").innerText=`${fmt(getDefPct())}%`;
+  document.getElementById("energy").innerText=`${fmt(player.energy)}/${fmt(player.maxEnergy)}`;
+  document.getElementById("gold").innerText=fmt(player.gold);
+
+  document.getElementById("nameLine").innerText=`Name: ${player.name ? player.name : "—"}`;
+  document.getElementById("classLine").innerText=`Klasse: ${getClass()?getClass().name:"—"}`;
+  document.getElementById("compLine").innerText=`Begleiter: ${getCompanion()?getCompanion().name:"—"}`;
+
+  document.getElementById("potion-count").innerText=player.potions;
+  document.getElementById("heal-btn").disabled = (player.potions<=0 || currentHp>=getMaxHp());
+
+  const w=player.weapon, a=player.armor;
+  document.getElementById("eqLine").innerText=`Waffe: ${w?`${w.name} (${w.rarity})`:"—"} · Rüstung: ${a?`${a.name} (${a.rarity})`:"—"}`;
+  document.getElementById("eqStats").innerText=`Angriff +${w?w.atk:0} · Verteidigung +${a?a.def:0}% · Gesundheit +${a?a.hp:0}`;
+  document.getElementById("eqAff").innerText=`Zusatzwerte: ${affixSummary({affixes:[...(w?.affixes||[]), ...(a?.affixes||[])]})}`;
+  document.getElementById("eqSet").innerText=`Set-Bonus: ${equippedSetBonusText()}`;
+  document.getElementById("eqDur").innerText=`Haltbarkeit: ${a?`${a.dur}/${a.maxDur}`:"—"}`;
+
+  const cls=getClass();
+  const sRow=document.getElementById("skillRow");
+  if(cls){
+    sRow.style.display="flex";
+    for(let i=1;i<=3;i++){
+      const s=cls.skills[i-1];
+      document.getElementById(`s${i}t`).innerText=`${s.icon} ${s.name}`;
+      document.getElementById(`s${i}cd`).innerText = (skillCD[i]>0)?`CD ${skillCD[i]}`:"Bereit";
+      const btn=document.getElementById(`skill${i}`);
+      btn.disabled = !isInBattle || skillCD[i]>0 || player.energy<=0;
+      btn.setAttribute("data-tip", s.info);
+    }
   } else {
-    setPortraitIndex(monster.portrait ?? 0);
+    sRow.style.display="flex";
+    for(let i=1;i<=3;i++){
+      document.getElementById(`s${i}t`).innerText="—";
+      document.getElementById(`s${i}cd`).innerText="—";
+      const btn=document.getElementById(`skill${i}`);
+      btn.disabled=true;
+      btn.removeAttribute("data-tip");
+    }
   }
 
-  if(!loaded){
-    currentHp=getMaxHp();
+  const mHp=Math.max(0, Math.floor(monster.hp||0));
+  const mMax=Math.max(1, Math.floor(monster.maxHp||1));
+  document.getElementById("monster-hp-text").innerText = (isInBattle?`${fmt(mHp)}/${fmt(mMax)}`:"—");
+  const pct = isInBattle ? clamp((mHp/mMax)*100,0,100) : 0;
+  document.getElementById("monster-hp-bar").style.width = pct+"%";
+
+  const fx=[];
+  if(monster?.effects){
+    if(monster.effects.vulnTurns>0) fx.push(`<span class="fx">🩸 <b>Verwundbar</b> (${monster.effects.vulnTurns})</span>`);
+    if(monster.effects.weakenTurns>0) fx.push(`<span class="fx">⛓️ <b>Geschwächt</b> (${monster.effects.weakenTurns})</span>`);
+    if(monster.effects.bleedTurns>0) fx.push(`<span class="fx">☠️ <b>Effekt</b> (${monster.effects.bleedTurns})</span>`);
+  }
+  document.getElementById("fxIcons").innerHTML = fx.join("");
+
+  document.getElementById("attackBtn").disabled = !isInBattle;
+  document.getElementById("nextBtn").disabled = run.active || isInBattle;
+  document.getElementById("dungeonBtn").disabled = run.active || isInBattle;
+  updateCombatPotionBtn();
+
+  renderInventory();
+  saveGame();
+}
+/* === UI END === */
+
+/* === CLASS PICKERS START === */
+function openClassPicker(force){
+  const rows=CLASSES.map(c=>`
+    <div class="itemRow">
+      <div class="itMeta">
+        <b>${c.name}</b>
+        <div class="sub">${c.desc}</div>
+        <div class="sub">Skills: ${c.skills.map(s=>`${s.icon} ${s.name}`).join(" · ")}</div>
+      </div>
+      <div class="itBtns">
+        <button class="btnBuy" onclick="selectClass('${c.id}')">Wählen</button>
+      </div>
+    </div>`).join("");
+  openPopup("Klasse wählen", `<div class="mut">Wähle deine Klasse. Diese bestimmt deine drei Skills.</div><div style="margin-top:10px;">${rows}</div>`,
+    force?``:`<button onclick="closePopup()">Zurück</button>`
+  );
+}
+function selectClass(id){
+  player.classId=id;
+  skillCD={1:0,2:0,3:0};
+  log(`Klasse gewählt: <b>${getClass().name}</b>.`, "cInfo");
+  closePopup();
+  updateUI();
+  openCompanionPicker(true);
+}
+function openCompanionPicker(force){
+  const rows=COMPANIONS.map(c=>`
+    <div class="itemRow">
+      <div class="itMeta">
+        <b>${c.name}</b>
+        <div class="sub">${c.desc}</div>
+      </div>
+      <div class="itBtns">
+        <button class="btnBuy" onclick="selectCompanion('${c.id}')">Wählen</button>
+      </div>
+    </div>`).join("");
+  openPopup("Begleiter wählen", `<div class="mut">Wähle deinen Begleiter. Er gibt dir dauerhaft einen Bonus.</div><div style="margin-top:10px;">${rows}</div>`,
+    force?``:`<button onclick="closePopup()">Zurück</button>`
+  );
+}
+function selectCompanion(id){
+  player.companionId=id;
+  log(`Begleiter gewählt: <b>${getCompanion().name}</b>.`, "cInfo");
+  closePopup();
+  updateUI();
+}
+/* === CLASS PICKERS END === */
+
+/* === TUTORIAL START === */
+function tutorialFlow(){
+  openPopup("Tutorial",
+    `<div style="line-height:1.55">
+      <div><b>Willkommen bei Dungeon Slayer.</b></div>
+      <div class="mut" style="margin-top:10px;">
+        <b>Angriff:</b> Du greifst das Monster an. Das Monster greift danach zurück.<br><br>
+        <b>Trank benutzen:</b> Du regenerierst einen Teil deiner maximalen Gesundheit. Im Kampf verbraucht das deine Runde.<br><br>
+        <b>Schmied:</b> Dort kaufst du Waffen und Rüstungen. Rüstungen können beschädigt werden. Beim Schmied kannst du sie reparieren.<br><br>
+        <b>Ausrüstung:</b> Im Inventar kannst du Items ausrüsten und verkaufen. Set-Boni gelten, wenn Waffe und Rüstung aus demselben Set stammen.<br><br>
+        <b>Dungeon-Run:</b> Eine Reihe von Kämpfen, am Ende wartet ein Boss. Danach erscheint eine Truhe.<br><br>
+        <b>Regeneration:</b> Außerhalb des Kampfes regenerierst du regelmäßig Gesundheit.
+      </div>
+    </div>`,
+    `<button onclick="closePopup()">Starten</button>`
+  );
+}
+/* === TUTORIAL END === */
+
+/* === STARTFLOW START === */
+function startFlow(){
+  openPopup("Dungeon Slayer",
+    `<div><b>Wie lautet dein Name?</b></div>
+     <div class="mut" style="margin-top:8px;">Der Name wird im Profil angezeigt und im Spiel gespeichert.</div>
+     <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+       <input id="playerNameInput" type="text" maxlength="18" placeholder="Zum Beispiel: Mika" style="flex:1;min-width:220px;">
+     </div>
+     <div class="mut" style="margin-top:10px;"><b>Willst du ein Tutorial?</b></div>`,
+    `<button class="btnBuy" onclick="confirmNameAndTutorial(true)">Ja</button>
+     <button onclick="confirmNameAndTutorial(false)">Nein</button>`
+  );
+
+  setTimeout(()=>{
+    const inp=document.getElementById("playerNameInput");
+    if(inp){
+      inp.focus();
+      inp.addEventListener("keydown",(e)=>{ if(e.key==="Enter") confirmNameAndTutorial(false); });
+    }
+  }, 50);
+}
+
+function confirmNameAndTutorial(wantsTutorial){
+  const inp=document.getElementById("playerNameInput");
+  const raw=(inp?.value||"").trim();
+  player.name = raw ? raw : "Unbekannt";
+  closePopup();
+  updateUI();
+
+  if(wantsTutorial){
+    tutorialFlow();
+    openClassPicker(true);
   } else {
-    currentHp=Math.min(getMaxHp(), Math.max(1, currentHp));
+    openClassPicker(true);
+  }
+}
+/* === STARTFLOW END === */
+
+/* === RESET START === */
+function hardResetSaveUI(){
+  hardResetSave();
+
+  player={
+    name:"",
+    lvl:1,xp:0,xpToNext:100,
+    baseHp:100,baseAtk:12,
+    gold:100,potions:2,
+    weapon:null,armor:null,
+    inv:[],
+    classId:null,companionId:null,
+    energy:10,maxEnergy:10
+  };
+  currentHp=100;
+
+  monster=makeIdleMonster();
+  isInBattle=false;
+  fightTracker=null;
+
+  run={ active:false, stage:0, total:6, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
+  pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0,critBonus:0, lifeStealTurns:0,lifeSteal:0 };
+  skillCD={1:0,2:0,3:0};
+
+  shopDaily={ key:"", weapons:[], armors:[] };
+  shopWeekly={ key:"", items:[] };
+
+  lastRegenHpAt=Date.now();
+  lastRegenEnergyAt=Date.now();
+
+  document.getElementById("exitDungeonBtn").style.display="none";
+  document.getElementById("openChestBtn").style.display="none";
+  hidePostFight();
+  closePopup();
+
+  setPortraitIndex(0);
+  ensureDailyShop();
+  ensureWeeklyShop();
+  updateUI();
+  saveGame();
+
+  log("Alles wurde zurückgesetzt. Neuer Start.", "cInfo");
+  startFlow();
+}
+/* === RESET END === */
+
+/* === REGEN START === */
+function tickRegen(){
+  const now=Date.now();
+
+  if(!isInBattle){
+    if(now - lastRegenHpAt >= 15000){
+      const ticks=Math.floor((now - lastRegenHpAt)/15000);
+      lastRegenHpAt += ticks*15000;
+      const maxHp=getMaxHp();
+      if(currentHp<maxHp){
+        currentHp=Math.min(maxHp, currentHp+ticks);
+      }
+    }
+
+    if(now - lastRegenEnergyAt >= 10000){
+      const ticks=Math.floor((now - lastRegenEnergyAt)/10000);
+      lastRegenEnergyAt += ticks*10000;
+      if(player.energy<player.maxEnergy){
+        player.energy=Math.min(player.maxEnergy, player.energy+ticks);
+      }
+    }
   }
 
   updateUI();
-  setInterval(regenTick, 1000);
+}
+/* === REGEN END === */
 
-  setTimeout(()=>askTutorial(), 250);
+/* === INIT START === */
+(function init(){
+  applySprite();
 
-  log("Dungeon Slayer ist bereit.", "cInfo");
-};
+  ensureDailyShop();
+  ensureWeeklyShop();
+
+  const loaded=loadGame();
+  if(loaded){
+    log("Spielstand geladen.", "cInfo");
+  } else {
+    log("Die Tore öffnen sich…", "cInfo");
+  }
+
+  document.getElementById("monster-name").innerText=monster.name;
+  document.getElementById("monster-desc").innerText=monster.desc;
+  document.getElementById("monster-tier").innerText="";
+  document.getElementById("runInfo").innerText="";
+  setPortraitIndex(monster.portrait||0);
+
+  updateUI();
+
+  if(!player.name || !player.classId || !player.companionId){
+    startFlow();
+  }
+
+  setInterval(tickRegen, 1000);
+})();
+/* === INIT END === */
 </script>
 </body>
 </html>
