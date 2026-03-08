@@ -201,7 +201,7 @@ input[type="text"]{
     <div class="stat"><div class="lab">Gesundheit</div><div class="val" id="hp">100/100</div></div>
     <div class="stat"><div class="lab">Angriff</div><div class="val" id="atk">12</div></div>
     <div class="stat"><div class="lab">Verteidigung</div><div class="val" id="def">0%</div></div>
-    <div class="stat"><div class="lab">Energie</div><div class="val" id="energy">10/10</div></div>
+    <div class="stat"><div class="lab">Energie</div><div class="val" id="energy">100/100</div></div>
     <div class="stat"><div class="lab">Gold</div><div class="val gold" id="gold">100</div></div>
   </div>
 
@@ -260,8 +260,9 @@ input[type="text"]{
         </div>
 
         <div class="mut" style="margin-top:8px;">
-          Kritische Treffer: 5% (1,5×). Loot-Drop: 8%. Fähigkeiten kosten Energie. 1 Energie regeneriert alle 120 Sekunden.
-          Monster-kritische Treffer können Rüstungen beschädigen. Gesundheit regeneriert außerhalb des Kampfes alle 15 Sekunden um 1.
+          Kritische Treffer: 5% (1,5×). Loot-Drop: 8%. Fähigkeiten kosten Energie.
+          Außerhalb des Kampfes regenerieren alle 15 Sekunden +1 Gesundheit und +1 Energie.
+          Monster-kritische Treffer können Rüstungen beschädigen.
         </div>
       </div>
 
@@ -337,8 +338,8 @@ input[type="text"]{
 <script>
 const BUILD_INFO = {
   name: "Dungeon Slayer",
-  version: "Beta 0.10.6",
-  build: "2026-03-08-6",
+  version: "Beta 0.10.7",
+  build: "2026-03-08-7",
   notes: "Fehlerbehebungen"
 };
 
@@ -402,14 +403,14 @@ function weekKey(){
   return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
 }
 
-const SAVE_VERSION=10;
+const SAVE_VERSION=11;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
 function snapshotForSave(){
   return {
     v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, run,pfx,
-    shopDaily,shopWeekly, lastHpRegenTick,lastEnergyRegenTick,
+    shopDaily,shopWeekly, lastRegenTick,
     defeatedMonsters, tutorialWanted
   };
 }
@@ -431,8 +432,7 @@ function loadGame(){
   pfx=data.pfx||pfx;
   shopDaily=data.shopDaily||shopDaily;
   shopWeekly=data.shopWeekly||shopWeekly;
-  lastHpRegenTick = data.lastHpRegenTick || Date.now();
-  lastEnergyRegenTick = data.lastEnergyRegenTick || Date.now();
+  lastRegenTick = data.lastRegenTick || Date.now();
   defeatedMonsters=Array.isArray(data.defeatedMonsters)?data.defeatedMonsters:[];
   tutorialWanted=!!data.tutorialWanted;
 
@@ -456,7 +456,7 @@ let player={
   weapon:null,armor:null,
   inv:[],
   classId:null,companionId:null,
-  energy:10,maxEnergy:10
+  energy:100,maxEnergy:100
 };
 let currentHp=100;
 
@@ -482,8 +482,7 @@ let pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0
 let shopDaily={ key:"", weapons:[], armors:[] };
 let shopWeekly={ key:"", items:[] };
 
-let lastHpRegenTick = Date.now();
-let lastEnergyRegenTick = Date.now();
+let lastRegenTick = Date.now();
 let tutorialWanted=false;
 let defeatedMonsters=[];
 
@@ -535,7 +534,7 @@ const AFFIX_POOL=[
   {id:"hp", name:"Zusätzliche Gesundheit", apply:(lvl,rng)=>({hpFlat:Math.floor(6+lvl*2+rng()*8)})},
   {id:"atk", name:"Zusätzlicher Angriff", apply:(lvl,rng)=>({atkFlat:Math.floor(1+lvl*0.6+rng()*3)})},
   {id:"def", name:"Zusätzliche Verteidigung", apply:(lvl,rng)=>({defFlat:Math.floor(1+rng()*3)})},
-  {id:"energy", name:"Mehr Energie", apply:(lvl,rng)=>({energy:1})},
+  {id:"energy", name:"Mehr Energie", apply:(lvl,rng)=>({energy:5})},
 ];
 function pickAffixes(rng,lvl,rarity){
   const count=(rarity==="Common")?(rng()<0.25?1:0)
@@ -608,47 +607,47 @@ function sellValue(it){ return Math.max(1, Math.floor((it.price||0)*0.35)); }
 const CLASSES=[
   { id:"bloodknight", name:"Blutritter", desc:"Brutal. Hoher Schaden und Regeneration.",
     skills:[
-      {icon:"🩸", name:"Blutsturm", cost:2, info:"Sehr hoher Schaden. Danach regenerierst du Gesundheit anhand des verursachten Schadens.",
+      {icon:"🩸", name:"Blutsturm", cost:20, info:"Sehr hoher Schaden. Danach regenerierst du Gesundheit anhand des verursachten Schadens.",
        use:()=>{ const dmg=dealPlayerDamage(1.70,"Blutsturm"); healBy(Math.floor(dmg*0.20),"Blutsturm"); }},
-      {icon:"🗡️", name:"Herzspalter", cost:3, info:"Extremer Schaden. Danach erleidet das Monster für kurze Zeit mehr Schaden.",
+      {icon:"🗡️", name:"Herzspalter", cost:30, info:"Extremer Schaden. Danach erleidet das Monster für kurze Zeit mehr Schaden.",
        use:()=>{ dealPlayerDamage(2.15,"Herzspalter"); applyVuln(3,0.25); }},
-      {icon:"🛡️", name:"Karminklinge", cost:3, info:"Erhöhter Schaden. Du erhältst kurzzeitig mehr Verteidigung.",
+      {icon:"🛡️", name:"Karminklinge", cost:30, info:"Erhöhter Schaden. Du erhältst kurzzeitig mehr Verteidigung.",
        use:()=>{ applyGuard(2,20); dealPlayerDamage(1.35,"Karminklinge"); }}
     ]},
   { id:"exorcist", name:"Exorzist", desc:"Kontrolle. Schwächt Monster und schützt dich.",
     skills:[
-      {icon:"✝️", name:"Bannzeichen", cost:2, info:"Erhöhter Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
+      {icon:"✝️", name:"Bannzeichen", cost:20, info:"Erhöhter Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
        use:()=>{ dealPlayerDamage(1.35,"Bannzeichen"); applyWeaken(3,0.24); }},
-      {icon:"🛡️", name:"Heiliger Schutz", cost:3, info:"Du erhältst kurzzeitig stark erhöhte Verteidigung und regenerierst sofort Gesundheit.",
+      {icon:"🛡️", name:"Heiliger Schutz", cost:30, info:"Du erhältst kurzzeitig stark erhöhte Verteidigung und regenerierst sofort Gesundheit.",
        use:()=>{ applyGuard(3,28); healBy(Math.floor(getMaxHp()*0.14),"Heiliger Schutz"); }},
-      {icon:"🔥", name:"Läuterndes Feuer", cost:4, info:"Hoher Schaden. Zusätzlich verliert das Monster über Zeit Gesundheit.",
+      {icon:"🔥", name:"Läuterndes Feuer", cost:40, info:"Hoher Schaden. Zusätzlich verliert das Monster über Zeit Gesundheit.",
        use:()=>{ dealPlayerDamage(1.55,"Läuterndes Feuer"); applyBleed(3, Math.floor(8+player.lvl*1.3)); }}
     ]},
   { id:"necromancer", name:"Nekromant", desc:"Zermürbt Gegner. Effekte und Lebensraub.",
     skills:[
-      {icon:"☠️", name:"Knochenfluch", cost:2, info:"Erhöhter Schaden. Das Monster erleidet danach für kurze Zeit mehr Schaden.",
+      {icon:"☠️", name:"Knochenfluch", cost:20, info:"Erhöhter Schaden. Das Monster erleidet danach für kurze Zeit mehr Schaden.",
        use:()=>{ dealPlayerDamage(1.35,"Knochenfluch"); applyVuln(3,0.22); }},
-      {icon:"🕯️", name:"Seelensog", cost:3, info:"Hoher Schaden. Du regenerierst Gesundheit anhand des verursachten Schadens.",
+      {icon:"🕯️", name:"Seelensog", cost:30, info:"Hoher Schaden. Du regenerierst Gesundheit anhand des verursachten Schadens.",
        use:()=>{ const dmg=dealPlayerDamage(1.45,"Seelensog"); healBy(Math.floor(dmg*0.35),"Seelensog"); }},
-      {icon:"🩸", name:"Grabfäule", cost:4, info:"Schaden und ein starker Effekt: Das Monster verliert über Zeit Gesundheit.",
+      {icon:"🩸", name:"Grabfäule", cost:40, info:"Schaden und ein starker Effekt: Das Monster verliert über Zeit Gesundheit.",
        use:()=>{ dealPlayerDamage(1.20,"Grabfäule"); applyBleed(4, Math.floor(10+player.lvl*1.7)); }}
     ]},
   { id:"darksmith", name:"Dunkelschmied", desc:"Zäh. Verstärkt sich und macht Gegner verwundbar.",
     skills:[
-      {icon:"🔨", name:"Knochenhammer", cost:2, info:"Sehr hoher Schaden. Manchmal wird das Monster zusätzlich geschwächt.",
+      {icon:"🔨", name:"Knochenhammer", cost:20, info:"Sehr hoher Schaden. Manchmal wird das Monster zusätzlich geschwächt.",
        use:()=>{ dealPlayerDamage(1.85,"Knochenhammer"); if(Math.random()<0.35) applyWeaken(2,0.25); }},
-      {icon:"🛡️", name:"Eisenhaut", cost:3, info:"Stark erhöhte Verteidigung und sofortige Regeneration von Gesundheit.",
+      {icon:"🛡️", name:"Eisenhaut", cost:30, info:"Stark erhöhte Verteidigung und sofortige Regeneration von Gesundheit.",
        use:()=>{ applyGuard(3,30); healBy(Math.floor(getMaxHp()*0.12),"Eisenhaut"); }},
-      {icon:"⚙️", name:"Rüstungsbruch", cost:4, info:"Erhöhter Schaden. Das Monster erleidet danach deutlich mehr Schaden.",
+      {icon:"⚙️", name:"Rüstungsbruch", cost:40, info:"Erhöhter Schaden. Das Monster erleidet danach deutlich mehr Schaden.",
        use:()=>{ dealPlayerDamage(1.35,"Rüstungsbruch"); applyVuln(3,0.28); }}
     ]},
   { id:"horrorchem", name:"Horror-Alchemist", desc:"Gift und Kontrolle. Viele Effekte.",
     skills:[
-      {icon:"🧪", name:"Säurestoß", cost:2, info:"Erhöhter Schaden. Das Monster erleidet mehr Schaden und verliert zusätzlich über Zeit Gesundheit.",
+      {icon:"🧪", name:"Säurestoß", cost:20, info:"Erhöhter Schaden. Das Monster erleidet mehr Schaden und verliert zusätzlich über Zeit Gesundheit.",
        use:()=>{ dealPlayerDamage(1.35,"Säurestoß"); applyVuln(2,0.18); applyBleed(3, Math.floor(7+player.lvl*1.4)); }},
-      {icon:"💉", name:"Stimulans", cost:3, info:"Du regenerierst deutlich Gesundheit und erhältst für kurze Zeit mehr Angriff.",
+      {icon:"💉", name:"Stimulans", cost:30, info:"Du regenerierst deutlich Gesundheit und erhältst für kurze Zeit mehr Angriff.",
        use:()=>{ healBy(Math.floor(getMaxHp()*0.22),"Stimulans"); applyBerserk(2, Math.floor(4+player.lvl*0.6)); }},
-      {icon:"☠️", name:"Schreckensmischung", cost:4, info:"Hoher Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
+      {icon:"☠️", name:"Schreckensmischung", cost:40, info:"Hoher Schaden. Das Monster verursacht danach für kurze Zeit weniger Schaden.",
        use:()=>{ dealPlayerDamage(1.65,"Schreckensmischung"); applyWeaken(3,0.26); }}
     ]},
 ];
@@ -696,6 +695,10 @@ function getMaxHp(){
   const comp=sumCompanionBonus();
   const extra=(player.armor?.hp||0)+(setB?.bonus.hp||0)+(aff.hpFlat||0)+(comp.hp||0);
   return player.baseHp+extra;
+}
+function getMaxEnergy(){
+  const aff=sumAffixes();
+  return player.maxEnergy + (aff.energy||0);
 }
 function getAtk(){
   const setB=equippedSetBonus();
@@ -842,12 +845,8 @@ function pickMonsterByRules(){
 
   const targetLevel=chooseByWeights(weighted);
   let pool=normalMonsterDatabase.filter(m=>m.lvl===targetLevel && !isDefeatedMonster(m.name));
-
-  if(!pool.length){
-    pool=normalMonsterDatabase.filter(m=>!isDefeatedMonster(m.name));
-  }
+  if(!pool.length) pool=normalMonsterDatabase.filter(m=>!isDefeatedMonster(m.name));
   if(!pool.length) return null;
-
   return JSON.parse(JSON.stringify(pool[Math.floor(Math.random()*pool.length)]));
 }
 function pickDungeonMonsterByStage(stageIndex){
@@ -959,6 +958,7 @@ function equipItem(idx){
     currentHp=Math.min(currentHp,getMaxHp());
   }
   player.inv.splice(idx,1);
+  player.energy = Math.min(player.energy, getMaxEnergy());
   log(`Ausgerüstet: <b>${it.name}</b> ${rarityTag(it.rarity)}`, "cInfo");
   updateUI();
 }
@@ -1218,7 +1218,7 @@ function buyWeekly(idx){
 
 const ALCHEMY_ITEMS=[
   {id:"potion", name:"Bluttrank", desc:"Regeneriert 30% deiner maximalen Gesundheit.", price:50, buy:()=>{player.potions++;}},
-  {id:"ether", name:"Seelenäther", desc:"Regeneriert 3 Energie (bis maximal).", price:90, buy:()=>{player.energy=Math.min(player.maxEnergy, player.energy+3);}},
+  {id:"ether", name:"Seelenäther", desc:"Regeneriert 30 Energie (bis maximal).", price:90, buy:()=>{player.energy=Math.min(getMaxEnergy(), player.energy+30);}},
   {id:"ward", name:"Schutzsalz", desc:"Erhöht deine Verteidigung für kurze Zeit.", price:120, buy:()=>{applyGuard(2,18);}},
   {id:"fury", name:"Zornessenz", desc:"Erhöht deinen Angriff für kurze Zeit.", price:140, buy:()=>{applyBerserk(2,4);}},
 ];
@@ -1331,7 +1331,7 @@ function endFight(victory){
   if(pfx.lifeStealTurns>0) pfx.lifeStealTurns--;
 
   monster.effects=newMonsterEffects();
-  lastHpRegenTick = Date.now();
+  lastRegenTick = Date.now();
   showPostFight(victory);
   saveGame();
 }
@@ -1494,6 +1494,7 @@ function winFight(){
     }
   }
 
+  player.energy = Math.min(player.energy, getMaxEnergy());
   updateUI();
   endFight(true);
 }
@@ -1676,7 +1677,7 @@ function updateUI(){
   document.getElementById("hp").innerText=`${fmt(currentHp)}/${fmt(getMaxHp())}`;
   document.getElementById("atk").innerText=fmt(getAtk());
   document.getElementById("def").innerText=`${fmt(getDefPct())}%`;
-  document.getElementById("energy").innerText=`${fmt(player.energy)}/${fmt(player.maxEnergy)}`;
+  document.getElementById("energy").innerText=`${fmt(player.energy)}/${fmt(getMaxEnergy())}`;
   document.getElementById("gold").innerText=fmt(player.gold);
 
   document.getElementById("nameLine").innerText=`Name: ${player.name ? player.name : "—"}`;
@@ -1809,7 +1810,7 @@ function tutorialFlow(){
 
         <b>Verteidigung:</b> Verteidigung verringert den Schaden, den du von Monstern erhältst.<br><br>
 
-        <b>Energie:</b> Energie brauchst du für Klassenfähigkeiten. Fähigkeiten haben keinen Cooldown mehr. Stattdessen kostet jede Fähigkeit Energie. 1 Energie regeneriert alle 120 Sekunden.<br><br>
+        <b>Energie:</b> Energie brauchst du für Klassenfähigkeiten. Du hast 100 Energie. Außerhalb des Kampfes regenerierst du alle 15 Sekunden 1 Energie.<br><br>
 
         <b>Schmied:</b> Beim Schmied kaufst du Waffen und Rüstungen. Dort kannst du auch deine ausgerüstete Rüstung reparieren. Die Angebote sind nach dem günstigsten Preis sortiert.<br><br>
 
@@ -1872,7 +1873,7 @@ function hardResetSaveUI(){
     weapon:null,armor:null,
     inv:[],
     classId:null,companionId:null,
-    energy:10,maxEnergy:10
+    energy:100,maxEnergy:100
   };
   currentHp=100;
 
@@ -1886,8 +1887,7 @@ function hardResetSaveUI(){
   shopDaily={ key:"", weapons:[], armors:[] };
   shopWeekly={ key:"", items:[] };
 
-  lastHpRegenTick = Date.now();
-  lastEnergyRegenTick = Date.now();
+  lastRegenTick = Date.now();
   tutorialWanted=false;
   defeatedMonsters=[];
 
@@ -1908,34 +1908,28 @@ function hardResetSaveUI(){
 
 function tickRegen(){
   const now = Date.now();
+  const maxHp = getMaxHp();
+  const maxEnergy = getMaxEnergy();
 
   if(!isInBattle){
-    const maxHp = getMaxHp();
-
-    if(currentHp < maxHp){
-      const hpTicks = Math.floor((now - lastHpRegenTick) / 15000);
-      if(hpTicks > 0){
-        currentHp = Math.min(maxHp, currentHp + hpTicks);
-        lastHpRegenTick += hpTicks * 15000;
+    const ticks = Math.floor((now - lastRegenTick) / 15000);
+    if(ticks > 0){
+      if(currentHp < maxHp){
+        currentHp = Math.min(maxHp, currentHp + ticks);
       }
+      if(player.energy < maxEnergy){
+        player.energy = Math.min(maxEnergy, player.energy + ticks);
+      }
+      lastRegenTick += ticks * 15000;
+      updateUI();
     } else {
-      lastHpRegenTick = now;
+      if(currentHp >= maxHp && player.energy >= maxEnergy){
+        lastRegenTick = now;
+      }
     }
   } else {
-    lastHpRegenTick = now;
+    lastRegenTick = now;
   }
-
-  if(player.energy < player.maxEnergy){
-    const energyTicks = Math.floor((now - lastEnergyRegenTick) / 120000);
-    if(energyTicks > 0){
-      player.energy = Math.min(player.maxEnergy, player.energy + energyTicks);
-      lastEnergyRegenTick += energyTicks * 120000;
-    }
-  } else {
-    lastEnergyRegenTick = now;
-  }
-
-  updateUI();
 }
 
 (function init(){
@@ -1955,9 +1949,8 @@ function tickRegen(){
   document.getElementById("runInfo").innerText="";
   setMonsterImage(monster.image || null);
 
-  lastHpRegenTick = Date.now();
-  lastEnergyRegenTick = Date.now();
-
+  lastRegenTick = Date.now();
+  player.energy = Math.min(player.energy, getMaxEnergy());
   updateUI();
 
   if(!player.name || !player.classId || !player.companionId){
