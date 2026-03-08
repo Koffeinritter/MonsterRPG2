@@ -6,7 +6,6 @@
 <title>Dungeon Slayer</title>
 
 <style>
-/* === CSS START === */
 :root{
   --bg:#050505; --panel:#121212; --panel2:#0a0a0a;
   --border:#4a0000; --txt:#c0c0c0; --mut:#888;
@@ -43,7 +42,7 @@ h1{text-align:center;color:var(--red);letter-spacing:4px;margin:6px 0;text-trans
 
 .monRow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:10px;}
 #monster-img{
-  width:180px;height:180px;border-radius:14px;background:#050505;
+  width:220px;height:220px;border-radius:14px;background:#050505;
   border:1px solid #2a2a2a;box-shadow:inset 0 0 70px #000, 0 0 25px #000;
   background-repeat:no-repeat;background-size:cover;background-position:center;
 }
@@ -171,7 +170,6 @@ input[type="text"]{
   padding:10px 12px;border-radius:14px;border:1px solid #333;background:#070707;color:#eee;font-weight:700;outline:none;
 }
 @media (max-width:1200px){#game{width:100%}.layout{flex-direction:column}}
-/* === CSS END === */
 </style>
 </head>
 
@@ -316,16 +314,13 @@ input[type="text"]{
 </div>
 
 <script>
-/* === BUILD START === */
 const BUILD_INFO = {
   name: "Dungeon Slayer",
-  version: "Beta 0.10.1",
-  build: "2026-03-08-1",
-  notes: "Update Monsterbibliothek"
+  version: "Beta 0.10.2",
+  build: "2026-03-08-2",
+  notes: "Kleinere Fehlerbehebungen"
 };
-/* === BUILD END === */
 
-/* === SPRITES START === */
 function buildImagePath(folder, name){
   return `${folder}/${encodeURIComponent(name)}.png`;
 }
@@ -342,9 +337,7 @@ function setMonsterImage(path){
   el.style.backgroundRepeat="no-repeat";
 }
 function applySprite(){ setMonsterImage(null); }
-/* === SPRITES END === */
 
-/* === UTIL START === */
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmt=(n)=>Math.floor(n).toLocaleString("de-DE");
 function log(msg, cls){
@@ -355,9 +348,7 @@ function log(msg, cls){
   lb.prepend(d);
   while(lb.children.length>300) lb.removeChild(lb.lastChild);
 }
-/* === UTIL END === */
 
-/* === RNG START === */
 function xfnv1a(str){
   let h=2166136261>>>0;
   for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
@@ -384,10 +375,8 @@ function weekKey(){
   const wk=Math.floor((day - (onejan.getUTCDay()||7) + 10)/7);
   return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
 }
-/* === RNG END === */
 
-/* === SAVE START === */
-const SAVE_VERSION=5;
+const SAVE_VERSION=6;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
@@ -423,9 +412,7 @@ function loadGame(){
 }
 function hardResetSave(){ localStorage.removeItem(SAVE_KEY); }
 window.addEventListener("beforeunload", saveGame);
-/* === SAVE END === */
 
-/* === STATE START === */
 const INV_CAP=28;
 const BASE_CRIT=0.05, CRIT_MULT=1.5;
 const LOOT_CHANCE=0.03;
@@ -467,9 +454,14 @@ let shopWeekly={ key:"", items:[] };
 
 let lastRegenHpAt=Date.now();
 let lastRegenEnergyAt=Date.now();
-/* === STATE END === */
 
-/* === POPUP START === */
+function resetSkillCooldowns(){
+  skillCD={1:0,2:0,3:0};
+}
+function resetTemporaryEffects(){
+  pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0,critBonus:0, lifeStealTurns:0,lifeSteal:0 };
+}
+
 function openPopup(title, html, actionsHtml){
   document.getElementById("popupTitle").innerText=title;
   document.getElementById("popupText").innerHTML=html;
@@ -482,9 +474,7 @@ function openPopup(title, html, actionsHtml){
 function closePopup(){ document.getElementById("popupBackdrop").style.display="none"; }
 document.addEventListener("click",(e)=>{ const b=document.getElementById("popupBackdrop"); if(b.style.display==="flex" && e.target===b) closePopup(); });
 document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ const b=document.getElementById("popupBackdrop"); if(b.style.display==="flex") closePopup(); }});
-/* === POPUP END === */
 
-/* === ITEMS START === */
 function rarityTag(r){
   if(r==="Rare") return `<span class="tag rare">Rare</span>`;
   if(r==="Epic") return `<span class="tag epic">Epic</span>`;
@@ -581,9 +571,7 @@ function makeArmor(rng, lvl, ctx){
   return { type:"armor", name, rarity, lvlReq, def, hp, maxDur, dur:maxDur, set, affixes, price };
 }
 function sellValue(it){ return Math.max(1, Math.floor((it.price||0)*0.35)); }
-/* === ITEMS END === */
 
-/* === CLASSES START === */
 const CLASSES=[
   { id:"bloodknight", name:"Blutritter", desc:"Brutal. Hoher Schaden und Regeneration.",
     skills:[
@@ -639,9 +627,7 @@ const COMPANIONS=[
 ];
 function getClass(){ return CLASSES.find(c=>c.id===player.classId)||null; }
 function getCompanion(){ return COMPANIONS.find(c=>c.id===player.companionId)||null; }
-/* === CLASSES END === */
 
-/* === STATS START === */
 function equippedSetBonus(){
   const w=player.weapon, a=player.armor;
   if(!w||!a||!w.set||!a.set) return null;
@@ -704,9 +690,7 @@ function lifestealPct(){
   const buff=(pfx.lifeStealTurns>0?pfx.lifeSteal:0);
   return clamp(aff.lifesteal + comp.lifesteal + buff, 0, 0.35);
 }
-/* === STATS END === */
 
-/* === MONSTERS START === */
 function levelToTier(level){ return Math.max(1, Math.ceil(level / 2)); }
 
 const normalMonsterDatabase = [
@@ -817,9 +801,7 @@ function pickDungeonMonsterByStage(stageIndex){
   const pool=dungeonDatabase[key] || dungeonDatabase.Boss;
   return JSON.parse(JSON.stringify(pool[Math.floor(Math.random()*pool.length)]));
 }
-/* === MONSTERS END === */
 
-/* === EFFECTS START === */
 function applyVuln(turns,pct){
   monster.effects.vulnTurns=Math.max(monster.effects.vulnTurns, turns);
   monster.effects.vulnPct=Math.max(monster.effects.vulnPct, pct);
@@ -853,9 +835,7 @@ function healBy(amount,label){
   const gained=currentHp-before;
   if(gained>0) log(`${label}: +<b>${fmt(gained)}</b> Gesundheit.`, "cOk");
 }
-/* === EFFECTS END === */
 
-/* === INVENTORY START === */
 function addToInvOrDrop(it){
   if(player.inv.length>=INV_CAP){
     log("Loot fällt zu Boden… dein Inventar ist voll.", "cBad");
@@ -951,9 +931,7 @@ function openInventory(){
     `<button onclick="closePopup()">Zurück</button>`
   );
 }
-/* === INVENTORY END === */
 
-/* === REPAIR START === */
 function repairCost(){
   if(!player.armor) return null;
   const missing=player.armor.maxDur - player.armor.dur;
@@ -972,9 +950,7 @@ function repairArmor(){
   updateUI();
   openSmith();
 }
-/* === REPAIR END === */
 
-/* === SHOPS START === */
 function ensureDailyShop(){
   const key=dayKey();
   if(shopDaily.key===key && shopDaily.weapons.length===50 && shopDaily.armors.length===50) return;
@@ -1087,7 +1063,6 @@ function openSmith(){
     `<button onclick="closePopup()">Zurück</button>`
   );
 }
-
 function buyFromSmith(type, shownIdx){
   const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
   const source=(type==="weapon")?shopDaily.weapons:shopDaily.armors;
@@ -1105,7 +1080,6 @@ function buyFromSmith(type, shownIdx){
   updateUI();
   openSmith();
 }
-
 function previewEquip(type, shownIdx){
   const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
   const source=(type==="weapon")?shopDaily.weapons:shopDaily.armors;
@@ -1211,9 +1185,7 @@ function buyAlchemy(idx){
   updateUI();
   openAlchemy();
 }
-/* === SHOPS END === */
 
-/* === COMBAT START === */
 function beginFight(m){
   monster=JSON.parse(JSON.stringify(m));
   monster.maxHp=monster.hp;
@@ -1234,7 +1206,6 @@ function beginFight(m){
   updateCombatPotionBtn();
   updateUI();
 }
-
 function spawnMonster(){
   hidePostFight();
 
@@ -1256,7 +1227,6 @@ function spawnMonster(){
     document.getElementById("runInfo").innerText="";
   }
 }
-
 function endFight(victory){
   isInBattle=false;
   document.getElementById("attackBtn").disabled=true;
@@ -1270,11 +1240,9 @@ function endFight(victory){
   for(const k of [1,2,3]) if(skillCD[k]>0) skillCD[k]--;
 
   monster.effects=newMonsterEffects();
-
   showPostFight(victory);
   saveGame();
 }
-
 function applyTurnEffects(){
   if(monster.effects.bleedTurns>0){
     const dmg=monster.effects.bleedDmg;
@@ -1287,7 +1255,6 @@ function applyTurnEffects(){
   if(monster.effects.weakenTurns>0) monster.effects.weakenTurns--;
   return "ok";
 }
-
 function calcPlayerDamageBase(){
   const atk=getAtk();
   const roll=Math.floor(Math.random()*5);
@@ -1322,7 +1289,6 @@ function dealPlayerDamage(mult,label){
 
   return dmg;
 }
-
 function playerAttack(){
   if(!isInBattle || monster.hp<=0) return;
 
@@ -1353,7 +1319,6 @@ function playerAttack(){
 
   monsterTurn();
 }
-
 function monsterTurn(){
   if(!isInBattle || monster.hp<=0) return;
 
@@ -1393,7 +1358,6 @@ function monsterTurn(){
 
   updateUI();
 }
-
 function winFight(){
   isInBattle=false;
 
@@ -1440,7 +1404,6 @@ function winFight(){
   updateUI();
   endFight(true);
 }
-
 function dieFight(){
   isInBattle=false;
   const lost=Math.floor(player.gold*0.2);
@@ -1459,7 +1422,6 @@ function dieFight(){
   updateUI();
   endFight(false);
 }
-
 function usePotion(inCombat){
   if(player.potions<=0){ log("Keine Tränke mehr.", "cBad"); return; }
   const maxHp=getMaxHp();
@@ -1475,7 +1437,6 @@ function usePotion(inCombat){
     monsterTurn();
   }
 }
-
 function updateCombatPotionBtn(){
   const btn=document.getElementById("combatPotionBtn");
   if(isInBattle && player.potions>0 && currentHp<getMaxHp()){
@@ -1484,7 +1445,6 @@ function updateCombatPotionBtn(){
     btn.style.display="none";
   }
 }
-
 function useSkill(n){
   const cls=getClass();
   if(!cls){ log("Wähle zuerst eine Klasse.", "cBad"); openClassPicker(false); return; }
@@ -1507,16 +1467,13 @@ function useSkill(n){
 
   monsterTurn();
 }
-
 function showSkillInfo(n){
   const cls=getClass();
   if(!cls) return;
   const s=cls.skills[n-1];
   openPopup("Skill-Info", `<div><b>${s.icon} ${s.name}</b></div><div class="mut" style="margin-top:8px;">${s.info}</div>`, `<button onclick="closePopup()">Schließen</button>`);
 }
-/* === COMBAT END === */
 
-/* === DUNGEON START === */
 function startDungeon(){
   hidePostFight();
   if(isInBattle){ log("Du bist bereits im Kampf.", "cBad"); return; }
@@ -1528,6 +1485,7 @@ function startDungeon(){
   spawnMonster();
 }
 function exitDungeon(fromButton){
+  if(!run.active) return;
   run.active=false;
   run.stage=0;
   document.getElementById("exitDungeonBtn").style.display="none";
@@ -1563,9 +1521,7 @@ function openDungeonChest(){
   found.forEach(it=>log(`Truhe: <b>${it.name}</b> ${rarityTag(it.rarity)}`, "cGold"));
   updateUI();
 }
-/* === DUNGEON END === */
 
-/* === POSTFIGHT START === */
 function showPostFight(victory){
   const pf=document.getElementById("postFight");
   const st=document.getElementById("summaryText");
@@ -1595,9 +1551,7 @@ function pfExitDungeon(){
   if(run.active) exitDungeon(true);
   hidePostFight();
 }
-/* === POSTFIGHT END === */
 
-/* === NAME START === */
 function openNameChange(){
   openPopup("Name ändern",
     `<div><b>Wie lautet dein Name?</b></div>
@@ -1621,9 +1575,7 @@ function saveNameFromEdit(){
   closePopup();
   updateUI();
 }
-/* === NAME END === */
 
-/* === UI START === */
 function updateUI(){
   document.getElementById("buildLine").innerHTML =
     `Build: ${BUILD_INFO.name} ${BUILD_INFO.version}<br>Versionshinweise: ${BUILD_INFO.notes}`;
@@ -1690,14 +1642,14 @@ function updateUI(){
   document.getElementById("attackBtn").disabled = !isInBattle;
   document.getElementById("nextBtn").disabled = run.active || isInBattle;
   document.getElementById("dungeonBtn").disabled = run.active || isInBattle;
+  document.getElementById("exitDungeonBtn").style.display = run.active ? "inline-flex" : "none";
+  document.getElementById("exitDungeonBtn").disabled = !run.active;
   updateCombatPotionBtn();
 
   renderInventory();
   saveGame();
 }
-/* === UI END === */
 
-/* === CLASS PICKERS START === */
 function openClassPicker(force){
   const rows=CLASSES.map(c=>`
     <div class="itemRow">
@@ -1716,7 +1668,8 @@ function openClassPicker(force){
 }
 function selectClass(id){
   player.classId=id;
-  skillCD={1:0,2:0,3:0};
+  resetSkillCooldowns();
+  resetTemporaryEffects();
   log(`Klasse gewählt: <b>${getClass().name}</b>.`, "cInfo");
   closePopup();
   updateUI();
@@ -1743,9 +1696,7 @@ function selectCompanion(id){
   closePopup();
   updateUI();
 }
-/* === CLASS PICKERS END === */
 
-/* === TUTORIAL START === */
 function tutorialFlow(){
   openPopup("Tutorial",
     `<div style="line-height:1.55">
@@ -1762,9 +1713,7 @@ function tutorialFlow(){
     `<button onclick="closePopup()">Starten</button>`
   );
 }
-/* === TUTORIAL END === */
 
-/* === STARTFLOW START === */
 function startFlow(){
   openPopup("Dungeon Slayer",
     `<div><b>Wie lautet dein Name?</b></div>
@@ -1789,6 +1738,8 @@ function confirmNameAndTutorial(wantsTutorial){
   const inp=document.getElementById("playerNameInput");
   const raw=(inp?.value||"").trim();
   player.name = raw ? raw : "Unbekannt";
+  resetSkillCooldowns();
+  resetTemporaryEffects();
   closePopup();
   updateUI();
 
@@ -1799,9 +1750,7 @@ function confirmNameAndTutorial(wantsTutorial){
     openClassPicker(true);
   }
 }
-/* === STARTFLOW END === */
 
-/* === RESET START === */
 function hardResetSaveUI(){
   hardResetSave();
 
@@ -1822,8 +1771,8 @@ function hardResetSaveUI(){
   fightTracker=null;
 
   run={ active:false, stage:0, total:4, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
-  pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0,critBonus:0, lifeStealTurns:0,lifeSteal:0 };
-  skillCD={1:0,2:0,3:0};
+  resetTemporaryEffects();
+  resetSkillCooldowns();
 
   shopDaily={ key:"", weapons:[], armors:[] };
   shopWeekly={ key:"", items:[] };
@@ -1845,9 +1794,7 @@ function hardResetSaveUI(){
   log("Alles wurde zurückgesetzt. Neuer Start.", "cInfo");
   startFlow();
 }
-/* === RESET END === */
 
-/* === REGEN START === */
 function tickRegen(){
   const now=Date.now();
 
@@ -1872,9 +1819,7 @@ function tickRegen(){
 
   updateUI();
 }
-/* === REGEN END === */
 
-/* === INIT START === */
 (function init(){
   applySprite();
   ensureDailyShop();
@@ -1886,6 +1831,8 @@ function tickRegen(){
   } else {
     log("Die Tore öffnen sich…", "cInfo");
   }
+
+  if(!player.classId) resetSkillCooldowns();
 
   document.getElementById("monster-name").innerText=monster.name;
   document.getElementById("monster-desc").innerText=monster.desc;
@@ -1901,7 +1848,6 @@ function tickRegen(){
 
   setInterval(tickRegen, 1000);
 })();
-/* === INIT END === */
 </script>
 </body>
 </html>
