@@ -42,7 +42,7 @@ h1{text-align:center;color:var(--red);letter-spacing:4px;margin:6px 0;text-trans
 
 .monRow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:10px;}
 #monster-img{
-  width:280px;height:280px;border-radius:16px;background:#050505;
+  width:330px;height:330px;border-radius:16px;background:#050505;
   border:1px solid #2a2a2a;box-shadow:inset 0 0 70px #000, 0 0 25px #000;
   background-repeat:no-repeat;background-size:cover;background-position:center;
 }
@@ -182,7 +182,12 @@ input[type="text"]{
   transform:scale(1.05);
 }
 
-@media (max-width:1200px){#game{width:100%}.layout{flex-direction:column}#monster-img{width:240px;height:240px}#lootFlash .inner{font-size:64px}}
+@media (max-width:1200px){
+  #game{width:100%}
+  .layout{flex-direction:column}
+  #monster-img{width:270px;height:270px}
+  #lootFlash .inner{font-size:64px}
+}
 </style>
 </head>
 
@@ -332,9 +337,9 @@ input[type="text"]{
 <script>
 const BUILD_INFO = {
   name: "Dungeon Slayer",
-  version: "Beta 0.10.5",
-  build: "2026-03-08-5",
-  notes: "Kleinere Fehlerbehebungen"
+  version: "Beta 0.10.6",
+  build: "2026-03-08-6",
+  notes: "Fehlerbehebungen"
 };
 
 function buildImagePath(folder, name){
@@ -352,7 +357,6 @@ function setMonsterImage(path){
   el.style.backgroundPosition="center";
   el.style.backgroundRepeat="no-repeat";
 }
-function applySprite(){ setMonsterImage(null); }
 
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmt=(n)=>Math.floor(n).toLocaleString("de-DE");
@@ -398,14 +402,14 @@ function weekKey(){
   return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
 }
 
-const SAVE_VERSION=9;
+const SAVE_VERSION=10;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
 function snapshotForSave(){
   return {
     v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, run,pfx,
-    shopDaily,shopWeekly, lastRegenHpAt,lastRegenEnergyAt, regenAccumulator,
+    shopDaily,shopWeekly, lastHpRegenTick,lastEnergyRegenTick,
     defeatedMonsters, tutorialWanted
   };
 }
@@ -427,9 +431,8 @@ function loadGame(){
   pfx=data.pfx||pfx;
   shopDaily=data.shopDaily||shopDaily;
   shopWeekly=data.shopWeekly||shopWeekly;
-  lastRegenHpAt=data.lastRegenHpAt||Date.now();
-  lastRegenEnergyAt=data.lastRegenEnergyAt||Date.now();
-  regenAccumulator=typeof data.regenAccumulator==="number" ? data.regenAccumulator : 0;
+  lastHpRegenTick = data.lastHpRegenTick || Date.now();
+  lastEnergyRegenTick = data.lastEnergyRegenTick || Date.now();
   defeatedMonsters=Array.isArray(data.defeatedMonsters)?data.defeatedMonsters:[];
   tutorialWanted=!!data.tutorialWanted;
 
@@ -479,9 +482,8 @@ let pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0
 let shopDaily={ key:"", weapons:[], armors:[] };
 let shopWeekly={ key:"", items:[] };
 
-let lastRegenHpAt=Date.now();
-let lastRegenEnergyAt=Date.now();
-let regenAccumulator=0;
+let lastHpRegenTick = Date.now();
+let lastEnergyRegenTick = Date.now();
 let tutorialWanted=false;
 let defeatedMonsters=[];
 
@@ -1270,7 +1272,6 @@ function beginFight(m){
   monster.effects=monster.effects||newMonsterEffects();
 
   isInBattle=true;
-  regenAccumulator=0;
   fightTracker={ monsterName:monster.name, dmgDealt:0, dmgTaken:0, loot:null, isBoss:!!monster.isBoss, gold:0, xp:0 };
 
   document.getElementById("monster-name").innerText=monster.name;
@@ -1321,7 +1322,6 @@ function spawnMonster(){
 }
 function endFight(victory){
   isInBattle=false;
-  regenAccumulator=0;
   document.getElementById("attackBtn").disabled=true;
   updateCombatPotionBtn();
 
@@ -1331,7 +1331,7 @@ function endFight(victory){
   if(pfx.lifeStealTurns>0) pfx.lifeStealTurns--;
 
   monster.effects=newMonsterEffects();
-  lastRegenHpAt = Date.now();
+  lastHpRegenTick = Date.now();
   showPostFight(victory);
   saveGame();
 }
@@ -1886,9 +1886,8 @@ function hardResetSaveUI(){
   shopDaily={ key:"", weapons:[], armors:[] };
   shopWeekly={ key:"", items:[] };
 
-  lastRegenHpAt=Date.now();
-  lastRegenEnergyAt=Date.now();
-  regenAccumulator=0;
+  lastHpRegenTick = Date.now();
+  lastEnergyRegenTick = Date.now();
   tutorialWanted=false;
   defeatedMonsters=[];
 
@@ -1908,39 +1907,38 @@ function hardResetSaveUI(){
 }
 
 function tickRegen(){
-  const now=Date.now();
+  const now = Date.now();
 
   if(!isInBattle){
-    const delta = now - lastRegenHpAt;
-    if(delta > 0){
-      regenAccumulator += delta;
-      lastRegenHpAt = now;
-    }
+    const maxHp = getMaxHp();
 
-    while(regenAccumulator >= 15000){
-      regenAccumulator -= 15000;
-      const maxHp=getMaxHp();
-      if(currentHp < maxHp){
-        currentHp = Math.min(maxHp, currentHp + 1);
+    if(currentHp < maxHp){
+      const hpTicks = Math.floor((now - lastHpRegenTick) / 15000);
+      if(hpTicks > 0){
+        currentHp = Math.min(maxHp, currentHp + hpTicks);
+        lastHpRegenTick += hpTicks * 15000;
       }
+    } else {
+      lastHpRegenTick = now;
     }
   } else {
-    lastRegenHpAt = now;
+    lastHpRegenTick = now;
   }
 
-  if(now - lastRegenEnergyAt >= 120000){
-    const ticks=Math.floor((now - lastRegenEnergyAt)/120000);
-    lastRegenEnergyAt += ticks*120000;
-    if(player.energy<player.maxEnergy){
-      player.energy=Math.min(player.maxEnergy, player.energy+ticks);
+  if(player.energy < player.maxEnergy){
+    const energyTicks = Math.floor((now - lastEnergyRegenTick) / 120000);
+    if(energyTicks > 0){
+      player.energy = Math.min(player.maxEnergy, player.energy + energyTicks);
+      lastEnergyRegenTick += energyTicks * 120000;
     }
+  } else {
+    lastEnergyRegenTick = now;
   }
 
   updateUI();
 }
 
 (function init(){
-  applySprite();
   ensureDailyShop();
   ensureWeeklyShop();
 
@@ -1957,9 +1955,8 @@ function tickRegen(){
   document.getElementById("runInfo").innerText="";
   setMonsterImage(monster.image || null);
 
-  lastRegenHpAt = Date.now();
-  lastRegenEnergyAt = Date.now();
-  regenAccumulator = 0;
+  lastHpRegenTick = Date.now();
+  lastEnergyRegenTick = Date.now();
 
   updateUI();
 
