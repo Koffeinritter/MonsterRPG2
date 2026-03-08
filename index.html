@@ -45,7 +45,7 @@ h1{text-align:center;color:var(--red);letter-spacing:4px;margin:6px 0;text-trans
 #monster-img{
   width:180px;height:180px;border-radius:14px;background:#050505;
   border:1px solid #2a2a2a;box-shadow:inset 0 0 70px #000, 0 0 25px #000;
-  background-repeat:no-repeat;
+  background-repeat:no-repeat;background-size:cover;background-position:center;
 }
 .mut{color:var(--mut);font-size:12px;}
 #monster-desc{font-style:italic;color:#777;font-size:0.85em;margin:8px 0;min-height:2.2em;}
@@ -317,25 +317,31 @@ input[type="text"]{
 
 <script>
 /* === BUILD START === */
-const BUILD_INFO = { name:"Dungeon Slayer", version:"0.9.1", build:"2026-03-03-2" };
+const BUILD_INFO = {
+  name: "Dungeon Slayer",
+  version: "Beta 0.10.1",
+  build: "2026-03-08-1",
+  notes: "Update Monsterbibliothek"
+};
 /* === BUILD END === */
 
 /* === SPRITES START === */
-const SPRITE_URL = "https://2019.stemweder-berg-schule.de/wp-content/uploads/2026/03/IMG_0305.png";
-const GRID=8, TILE_PX=180, BG_SIZE=GRID*TILE_PX;
-function applySprite(){
+function buildImagePath(folder, name){
+  return `${folder}/${encodeURIComponent(name)}.png`;
+}
+function setMonsterImage(path){
   const el=document.getElementById("monster-img");
-  el.style.backgroundImage=`url(${SPRITE_URL})`;
-  el.style.backgroundSize=`${BG_SIZE}px ${BG_SIZE}px`;
+  if(!path){
+    el.style.backgroundImage="none";
+    el.style.backgroundColor="#050505";
+    return;
+  }
+  el.style.backgroundImage=`url(${path})`;
+  el.style.backgroundSize="cover";
+  el.style.backgroundPosition="center";
   el.style.backgroundRepeat="no-repeat";
-  setPortraitIndex(0);
 }
-function setPortraitIndex(idx){
-  const el=document.getElementById("monster-img");
-  const safe=((idx%64)+64)%64;
-  const r=Math.floor(safe/GRID), c=safe%GRID;
-  el.style.backgroundPosition=`${-c*TILE_PX}px ${-r*TILE_PX}px`;
-}
+function applySprite(){ setMonsterImage(null); }
 /* === SPRITES END === */
 
 /* === UTIL START === */
@@ -381,7 +387,7 @@ function weekKey(){
 /* === RNG END === */
 
 /* === SAVE START === */
-const SAVE_VERSION=4;
+const SAVE_VERSION=5;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
@@ -407,7 +413,6 @@ function loadGame(){
   pfx=data.pfx||pfx;
   shopDaily=data.shopDaily||shopDaily;
   shopWeekly=data.shopWeekly||shopWeekly;
-
   lastRegenHpAt=data.lastRegenHpAt||Date.now();
   lastRegenEnergyAt=data.lastRegenEnergyAt||Date.now();
 
@@ -438,16 +443,23 @@ let player={
 let currentHp=100;
 
 function newMonsterEffects(){ return {vulnTurns:0,vulnPct:0,weakenTurns:0,weakenPct:0,bleedTurns:0,bleedDmg:0}; }
-function makeIdleMonster(){ return {name:"Bereit…",desc:"Wähle „Nächster Kampf“ oder starte einen Dungeon.",hp:0,maxHp:1,atk:0,lvl:0,tier:0,portrait:0,effects:newMonsterEffects(),isBoss:false}; }
+function makeIdleMonster(){
+  return {
+    name:"Bereit…",
+    desc:"Wähle „Nächster Kampf“ oder starte einen Dungeon.",
+    hp:0,maxHp:1,atk:0,lvl:0,tier:0,
+    image:null,
+    effects:newMonsterEffects(),
+    isBoss:false
+  };
+}
 
 let monster=makeIdleMonster();
 let isInBattle=false;
 let fightTracker=null;
 
-let run={ active:false, stage:0, total:6, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
-
+let run={ active:false, stage:0, total:4, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
 let pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0,critBonus:0, lifeStealTurns:0,lifeSteal:0 };
-
 let skillCD={1:0,2:0,3:0};
 
 let shopDaily={ key:"", weapons:[], armors:[] };
@@ -695,62 +707,115 @@ function lifestealPct(){
 /* === STATS END === */
 
 /* === MONSTERS START === */
-const NAMES=["Fäulnis-Ghul","Aschenwurm","Knochenbeter","Frostkultist","Schlackenspinner","Rissschatten","Seelenknacker","Schnittmaul","Schädelhüter","Madenpriester","Zungenwürger","Gruftratte","Wimmergeist","Blutgargoyle","Nachtkriecher","Sargwächter","Dornenkreatur","Leichensammler","Schwarzpesthund","Sporenwirt"];
-const DESCS=[
-  "Es starrt, als würde es dich von innen sehen.",
-  "Ein stinkender Atem aus Erde und Blut.",
-  "Seine Haut ist ein Mantel aus Narben.",
-  "Die Luft um ihn herum wirkt krank.",
-  "Du hörst Knochen knirschen, bevor es zuschlägt."
+function levelToTier(level){ return Math.max(1, Math.ceil(level / 2)); }
+
+const normalMonsterDatabase = [
+  {name:"Aaskriecher", desc:"Du bist sein Abendessen", lvl:3, hp:240, atk:20, gold:40, xp:30, tier:levelToTier(3), image:buildImagePath("monster","Aaskriecher"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Abscheulicher Mini-Yeti", desc:"Klein, aber ekelig", lvl:1, hp:80, atk:8, gold:20, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Abscheulicher Mini-Yeti"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Allosaurus", desc:"Ein Saurier, aber kein gefährlicher", lvl:1, hp:140, atk:7, gold:20, xp:25, tier:levelToTier(1), image:buildImagePath("monster","Allosaurus"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Ungeschickter Assassine", desc:"Trifft aber ab und zu auch dich", lvl:2, hp:180, atk:12, gold:30, xp:30, tier:levelToTier(2), image:buildImagePath("monster","Ungeschickter Assassine"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Feuriger Axtschnabel", desc:"Vater: Phoenix, Mutter: Beil", lvl:5, hp:380, atk:28, gold:120, xp:100, tier:levelToTier(5), image:buildImagePath("monster","Feuriger Axtschnabel"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Pummeliger Burg-Wächter", desc:"War mal gefährlicher", lvl:1, hp:100, atk:6, gold:20, xp:15, tier:levelToTier(1), image:buildImagePath("monster","Pummeliger Burg-Wächter"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Belebte Rüstung", desc:"Ist etwas klapperig", lvl:2, hp:180, atk:13, gold:45, xp:35, tier:levelToTier(2), image:buildImagePath("monster","Belebte Rüstung"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Frierender Basilisk", desc:"Mag es nicht, gewärmt zu werden", lvl:4, hp:300, atk:26, gold:5, xp:220, tier:levelToTier(4), image:buildImagePath("monster","Frierender Basilisk"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Einarmiger Berserker", desc:"Ist irgendwie arm dran", lvl:1, hp:60, atk:15, gold:20, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Einarmiger Berserker"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Tollpatschiger Zombie", desc:"Weiß nicht genau, wo er hinhauen muss", lvl:2, hp:150, atk:18, gold:40, xp:20, tier:levelToTier(2), image:buildImagePath("monster","Tollpatschiger Zombie"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Hungriger Braunbär", desc:"Sieht in dir mehr Steak als Freund", lvl:1, hp:100, atk:9, gold:24, xp:22, tier:levelToTier(1), image:buildImagePath("monster","Hungriger Braunbär"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Braungebrannte Chimäre", desc:"Eben noch auf Malle, jetzt hier", lvl:3, hp:250, atk:12, gold:42, xp:48, tier:levelToTier(3), image:buildImagePath("monster","Braungebrannte Chimäre"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Kreidewerfender Biologie-Lehrer", desc:"Nenn 4 Zellbestandteile oder stirb", lvl:1, hp:40, atk:25, gold:30, xp:10, tier:levelToTier(1), image:buildImagePath("monster","Kreidewerfender Biologie-Lehrer"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Tollwütiger Dachs", desc:"Hat dich zum Fressen gern", lvl:4, hp:280, atk:24, gold:50, xp:20, tier:levelToTier(4), image:buildImagePath("monster","Tollwütiger Dachs"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Wahnsinniger Pausenclown", desc:"Kein Zirkus will ihn", lvl:1, hp:80, atk:8, gold:20, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Wahnsinniger Pausenclown"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Gemütliche Drachenschildkröte", desc:"Mag es nicht, gestört zu werden", lvl:2, hp:130, atk:12, gold:33, xp:33, tier:levelToTier(2), image:buildImagePath("monster","Gemütliche Drachenschildkröte"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Teuflischer Druide", desc:"Braucht dich für seine Experimente", lvl:6, hp:450, atk:30, gold:120, xp:150, tier:levelToTier(6), image:buildImagePath("monster","Teuflischer Druide"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Achtbeiniger Eber", desc:"Rennt schneller als deine Mutter", lvl:1, hp:70, atk:18, gold:25, xp:25, tier:levelToTier(1), image:buildImagePath("monster","Achtbeiniger Eber"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Wildgewordene Schulsekretärin", desc:"Da würde ich nicht nach einem Pflaster fragen", lvl:2, hp:100, atk:30, gold:10, xp:50, tier:levelToTier(2), image:buildImagePath("monster","Wildgewordene Schulsekretärin"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Kleiner Echsenmensch", desc:"Ein süßer Kerl, aber mit Speer", lvl:1, hp:100, atk:7, gold:20, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Kleiner Echsenmensch"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Mutierte Riesen-Eidechse", desc:"War schon vor der Mutation hässlich", lvl:3, hp:180, atk:28, gold:40, xp:45, tier:levelToTier(3), image:buildImagePath("monster","Mutierte Riesen-Eidechse"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Zweiköpfiges Einhorn", desc:"Darf man das noch Einhorn nennen?", lvl:7, hp:560, atk:32, gold:125, xp:200, tier:levelToTier(7), image:buildImagePath("monster","Zweiköpfiges Einhorn"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Gichtige Oma-Spinne", desc:"Trotz sechs Beinen recht langsam", lvl:1, hp:50, atk:13, gold:20, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Gichtige Oma-Spinne"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Verfilzter Eisbär", desc:"Möchte sich an dir schubbern", lvl:2, hp:150, atk:15, gold:27, xp:28, tier:levelToTier(2), image:buildImagePath("monster","Verfilzter Eisbär"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Fire Cock", desc:"Versprüht keinen Charme", lvl:5, hp:333, atk:33, gold:66, xp:66, tier:levelToTier(5), image:buildImagePath("monster","Fire Cock"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Giftsprühender Zombie-Elch", desc:"Wehe, wenn ihm übel ist", lvl:6, hp:425, atk:32, gold:145, xp:140, tier:levelToTier(6), image:buildImagePath("monster","Giftsprühender Zombie-Elch"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Wahnsinniger Baby-Elefant", desc:"So klein, süß und evil", lvl:1, hp:80, atk:8, gold:20, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Wahnsinniger Baby-Elefant"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Fanatischer Elementarkultist", desc:"Würde dich gern brennen sehen", lvl:3, hp:255, atk:11, gold:75, xp:20, tier:levelToTier(3), image:buildImagePath("monster","Fanatischer Elementarkultist"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Erwachter Busch", desc:"Hat fiese Äste und Zweige", lvl:1, hp:100, atk:3, gold:10, xp:10, tier:levelToTier(1), image:buildImagePath("monster","Erwachter Busch"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Niedlicher Erd-Koloss", desc:"Ganz niedlich, aber 2 Tonnen schwer", lvl:2, hp:175, atk:11, gold:40, xp:35, tier:levelToTier(2), image:buildImagePath("monster","Niedlicher Erd-Koloss"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Kuscheliger Eulenbär", desc:"Auch süße Monster müsen besiegt werden. Schade.", lvl:1, hp:90, atk:6, gold:15, xp:15, tier:levelToTier(1), image:buildImagePath("monster","Kuscheliger Eulenbär"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Fahrender Ritter", desc:"Eine kleine Gefahr auf vier Rädern", lvl:2, hp:165, atk:17, gold:50, xp:10, tier:levelToTier(2), image:buildImagePath("monster","Fahrender Ritter"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Tollwütiger Riesen-Falke", desc:"Pickt nicht nur Regenwürmer", lvl:4, hp:280, atk:28, gold:120, xp:120, tier:levelToTier(4), image:buildImagePath("monster","Tollwütiger Riesen-Falke"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Abscheulicher Feengeist", desc:"Wenn schon Fee, dann Toffi-Fee bitte", lvl:6, hp:460, atk:40, gold:80, xp:175, tier:levelToTier(6), image:buildImagePath("monster","Abscheulicher Feengeist"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Dämonischer Erzpriester", desc:"Der linke Arm des Teufels oder so", lvl:8, hp:666, atk:33, gold:167, xp:167, tier:levelToTier(8), image:buildImagePath("monster","Dämonischer Erzpriester"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Widerwärtiger Fleischgolem", desc:"100% nicht-veganes Hackfleisch", lvl:8, hp:650, atk:45, gold:200, xp:120, tier:levelToTier(8), image:buildImagePath("monster","Widerwärtiger Fleischgolem"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Bluthungriger Fledermausschwarm", desc:"Keine Sorge, sind höchstens 538", lvl:4, hp:300, atk:25, gold:150, xp:100, tier:levelToTier(4), image:buildImagePath("monster","Bluthungriger Fledermausschwarm"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Durchdrehendes Flusspferd", desc:"Zermalmt dich gerne", lvl:5, hp:350, atk:32, gold:125, xp:120, tier:levelToTier(5), image:buildImagePath("monster","Durchdrehendes Flusspferd"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Eitriger Friedhofswächter", desc:"Passt auch später dann auf dich auf", lvl:3, hp:240, atk:15, gold:60, xp:60, tier:levelToTier(3), image:buildImagePath("monster","Eitriger Friedhofswächter"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Giftiger Chamäleon-Frosch", desc:"Kann zwar nicht die Farbe ändern, aber stinkt dafür", lvl:2, hp:80, atk:30, gold:50, xp:50, tier:levelToTier(2), image:buildImagePath("monster","Giftiger Chamäleon-Frosch"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Geflügelter Kobold", desc:"Der Kolibri unter den Kobolden", lvl:1, hp:100, atk:10, gold:25, xp:25, tier:levelToTier(1), image:buildImagePath("monster","Geflügelter Kobold"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Aufgebrachte Terror-Henne", desc:"Legt keine Eier und daher schlecht gelaunt", lvl:1, hp:100, atk:10, gold:25, xp:25, tier:levelToTier(1), image:buildImagePath("monster","Aufgebrachte Terror-Henne"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Mysteriöser Philosophie-Lehrer", desc:"Redet dauernd irgendwelches Zeug", lvl:1, hp:70, atk:18, gold:25, xp:25, tier:levelToTier(1), image:buildImagePath("monster","Mysteriöser Philosophie-Lehrer"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Durchgeknallte Kunst-Lehrerin", desc:"Baut dich hinterher aus Pappmaché nach", lvl:4, hp:300, atk:26, gold:149, xp:103, tier:levelToTier(4), image:buildImagePath("monster","Durchgeknallte Kunst-Lehrerin"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Wildgewordener Regenwurm", desc:"Zu wild, als dass du ihn zertreten könntest", lvl:1, hp:80, atk:6, gold:14, xp:10, tier:levelToTier(1), image:buildImagePath("monster","Wildgewordener Regenwurm"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Giftige Riesen-Amöbe", desc:"Ein unangenehmer Einzeller", lvl:3, hp:260, atk:18, gold:115, xp:122, tier:levelToTier(3), image:buildImagePath("monster","Giftige Riesen-Amöbe"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Gargoyle-Wächter", desc:"Steinharter Geselle", lvl:5, hp:325, atk:32, gold:165, xp:125, tier:levelToTier(5), image:buildImagePath("monster","Gargoyle-Wächter"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Kobold-Erfinder", desc:"Erfindet lauter Sachen, die knallen und explodieren", lvl:2, hp:120, atk:20, gold:30, xp:30, tier:levelToTier(2), image:buildImagePath("monster","Kobold-Erfinder"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Feuriger Behemoth", desc:"Hält dich für eine leckere Bratwurst", lvl:5, hp:360, atk:32, gold:120, xp:200, tier:levelToTier(5), image:buildImagePath("monster","Feuriger Behemoth"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Wildgewordener Schalke-Fan", desc:"Heißt Günni und kommt aus Castrop-Rauxel", lvl:1, hp:70, atk:5, gold:10, xp:12, tier:levelToTier(1), image:buildImagePath("monster","Wildgewordener Schalke-Fan"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Echsen-Zyklop", desc:"Ein Auge, eine Keule und ein großes Aggressionsproblem", lvl:3, hp:260, atk:14, gold:55, xp:67, tier:levelToTier(3), image:buildImagePath("monster","Echsen-Zyklop"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Frostriese", desc:"Möchte dich in Eis verwandeln und zersplittern sehen", lvl:5, hp:350, atk:38, gold:175, xp:150, tier:levelToTier(5), image:buildImagePath("monster","Frostriese"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Kuscheliger Ghul", desc:"Mag Kuscheltiere, aber keine Menschen", lvl:2, hp:160, atk:15, gold:33, xp:33, tier:levelToTier(2), image:buildImagePath("monster","Kuscheliger Ghul"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Seuchen-Ghul", desc:"Hat ziemlichen Mundgeruch, war bestimmt mal Lehrer", lvl:4, hp:300, atk:27, gold:111, xp:123, tier:levelToTier(4), image:buildImagePath("monster","Seuchen-Ghul"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Gnoll-Krieger", desc:"Sieht gefährlicher aus, als er ist", lvl:3, hp:200, atk:20, gold:80, xp:20, tier:levelToTier(3), image:buildImagePath("monster","Gnoll-Krieger"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Uralter Greif", desc:"Hat keinen Bock mehr zu kämpfen eigentlich", lvl:1, hp:100, atk:10, gold:12, xp:20, tier:levelToTier(1), image:buildImagePath("monster","Uralter Greif"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Mutierte Riesen-Heuschrecke", desc:"Verspeist gerne Menschen in aller Ruhe", lvl:3, hp:250, atk:22, gold:10, xp:100, tier:levelToTier(3), image:buildImagePath("monster","Mutierte Riesen-Heuschrecke"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Fünfköpfiger Höllenhund", desc:"Streitet sich immer ums Futter, also um dich", lvl:7, hp:555, atk:40, gold:222, xp:150, tier:levelToTier(7), image:buildImagePath("monster","Fünfköpfiger Höllenhund"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Junge Hydra", desc:"Später mal böse und gefährlich, jetzt noch halbwegs süß", lvl:2, hp:100, atk:28, gold:50, xp:35, tier:levelToTier(2), image:buildImagePath("monster","Junge Hydra"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Diabolische Glibberschnecke", desc:"Schleimt sich gerne bei dir ein", lvl:4, hp:300, atk:30, gold:100, xp:280, tier:levelToTier(4), image:buildImagePath("monster","Diabolische Glibberschnecke"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Leviathan", desc:"Seit Urzeiten dürstet ihm nach Vernichtung", lvl:8, hp:600, atk:50, gold:120, xp:250, tier:levelToTier(8), image:buildImagePath("monster","Leviathan"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Dunkelroter Drache", desc:"Sieht aus wie angebrannt, riecht wie angebrannt", lvl:8, hp:550, atk:55, gold:155, xp:255, tier:levelToTier(8), image:buildImagePath("monster","Dunkelroter Drache"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Mumienfürst", desc:"Gab es damals goldenes Klopapier?", lvl:7, hp:500, atk:45, gold:125, xp:200, tier:levelToTier(7), image:buildImagePath("monster","Mumienfürst"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Giftige Hydra", desc:"Nicht so niedlich wie die junge Hydra", lvl:7, hp:450, atk:50, gold:135, xp:260, tier:levelToTier(7), image:buildImagePath("monster","Giftige Hydra"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Streitsüchtige Sukkubus", desc:"Man weiß nicht wirklich, ob sie nett ist", lvl:6, hp:400, atk:40, gold:200, xp:200, tier:levelToTier(6), image:buildImagePath("monster","Streitsüchtige Sukkubus"), effects:newMonsterEffects(), isBoss:false},
+  {name:"Riesiger Tapir-Zombie", desc:"Der war früher bestimmt mal neidlich", lvl:6, hp:380, atk:40, gold:180, xp:210, tier:levelToTier(6), image:buildImagePath("monster","Riesiger Tapir-Zombie"), effects:newMonsterEffects(), isBoss:false}
 ];
-const monsterDatabase=[];
-for(let i=0;i<64;i++){
-  const lvl=1+Math.floor(i/3);
-  const tier=1+Math.floor(i/10);
-  const early=(lvl<=2);
-  const baseHp=early?(38+lvl*10):(72+lvl*22);
-  const baseAtk=early?(4+lvl*2.0):(10+lvl*3.7);
-  monsterDatabase.push({
-    name:`${NAMES[i%NAMES.length]} #${i+1}`,
-    desc:DESCS[i%DESCS.length],
-    hp:Math.floor(baseHp+i*2.6),
-    atk:Math.floor(baseAtk+i*0.55),
-    gold:Math.floor((early?10:18)+lvl*6+i*1.1),
-    xp:Math.floor((early?16:28)+lvl*9+i*1.5),
-    lvl,tier,portrait:i,effects:newMonsterEffects(),isBoss:false
-  });
-}
+
+const dungeonDatabase = {
+  A: [
+    {name:"Der Mottenmann", desc:"…live from West Virginia…", code:"A", lvl:6, hp:700, atk:50, gold:250, xp:250, tier:6, image:buildImagePath("dungeon","Der Mottenmann"), effects:newMonsterEffects(), isBoss:false},
+    {name:"Ammut", desc:"Versetzte nicht nur Ägypten in Angst und Schrecken", code:"A", lvl:6, hp:750, atk:40, gold:150, xp:150, tier:6, image:buildImagePath("dungeon","Ammut"), effects:newMonsterEffects(), isBoss:false}
+  ],
+  B: [
+    {name:"El Chupacabra", desc:"Hat riesigen Hunger und keine Ziege in der Nähe", code:"B", lvl:7, hp:800, atk:65, gold:150, xp:250, tier:7, image:buildImagePath("dungeon","El Chupacabra"), effects:newMonsterEffects(), isBoss:false},
+    {name:"Ahriman", desc:"Lässt dich nicht aus dem Auge", code:"B", lvl:7, hp:850, atk:60, gold:200, xp:300, tier:7, image:buildImagePath("dungeon","Ahriman"), effects:newMonsterEffects(), isBoss:false}
+  ],
+  C: [
+    {name:"Tiamat", desc:"Möchte dich leersaugen und deinen Bauch aushöhlen", code:"C", lvl:8, hp:900, atk:80, gold:250, xp:350, tier:8, image:buildImagePath("dungeon","Tiamat"), effects:newMonsterEffects(), isBoss:false},
+    {name:"Chernobog", desc:"Ist keine Lichtgestalt", code:"C", lvl:8, hp:950, atk:75, gold:300, xp:300, tier:8, image:buildImagePath("dungeon","Chernobog"), effects:newMonsterEffects(), isBoss:false}
+  ],
+  D: [
+    {name:"Jersey Devil", desc:"Kommt nachts aus dem Wald und spukt für dich", code:"D", lvl:8, hp:1000, atk:95, gold:400, xp:400, tier:8, image:buildImagePath("dungeon","Jersey Devil"), effects:newMonsterEffects(), isBoss:false},
+    {name:"Belial", desc:"Hinterlässt überall Chaos", code:"D", lvl:8, hp:1100, atk:85, gold:500, xp:300, tier:8, image:buildImagePath("dungeon","Belial"), effects:newMonsterEffects(), isBoss:false}
+  ],
+  Boss: [
+    {name:"Cthulhu", desc:"Der unendliche Schrecken", code:"Boss", lvl:10, hp:1360, atk:132, gold:1120, xp:1200, tier:10, image:buildImagePath("dungeon","Cthulhu"), effects:newMonsterEffects(), isBoss:true}
+  ]
+};
+
 function pickMonsterByRules(){
   let pool=[];
-  if(run.active){
-    const stageTier=clamp(run.tierBase + Math.floor(run.stage/2), 1, 7);
-    const minLvl=Math.max(1, player.lvl-1);
-    const maxLvl=player.lvl+1;
-    pool=monsterDatabase.filter(m=>m.tier===stageTier && m.lvl>=minLvl && m.lvl<=maxLvl);
-    if(!pool.length) pool=monsterDatabase.filter(m=>m.tier===stageTier);
-  } else if(player.lvl>=3){
-    pool=monsterDatabase.filter(m=>m.lvl===player.lvl || m.lvl===player.lvl-1);
-    if(!pool.length) pool=monsterDatabase.filter(m=>m.lvl<=player.lvl+1);
+  if(player.lvl>=3){
+    pool=normalMonsterDatabase.filter(m=>m.lvl===player.lvl || m.lvl===player.lvl-1);
+    if(!pool.length) pool=normalMonsterDatabase.filter(m=>m.lvl<=player.lvl+1);
   } else {
-    pool=monsterDatabase.filter(m=>m.lvl<=player.lvl+1);
+    pool=normalMonsterDatabase.filter(m=>m.lvl<=player.lvl+1);
   }
-  if(!pool.length) pool=monsterDatabase;
-  return pool[Math.floor(Math.random()*pool.length)];
+  if(!pool.length) pool=normalMonsterDatabase;
+  return JSON.parse(JSON.stringify(pool[Math.floor(Math.random()*pool.length)]));
 }
-function makeDungeonBoss(){
-  const stageTier=clamp(run.tierBase+2,2,7);
-  const lvl=Math.max(3, player.lvl+2);
-  const baseHp=720 + lvl*170 + stageTier*260;
-  const baseAtk=70 + lvl*15 + stageTier*12;
-  return {
-    name:"Boss: Der Gruftschlächter",
-    desc:"Ein kolossaler Schattenkörper. Rostige Ketten und Dornenknochen reißen durch die Dunkelheit.",
-    hp:Math.floor(baseHp*1.15),
-    atk:Math.floor(baseAtk*1.05),
-    gold:Math.floor((260+lvl*140+stageTier*170)*2.0),
-    xp:Math.floor((240+lvl*160+stageTier*170)*2.0),
-    lvl,tier:stageTier,portrait:7,effects:newMonsterEffects(),isBoss:true
-  };
+function pickDungeonMonsterByStage(stageIndex){
+  const stageMap=["A","B","C","D","Boss"];
+  const key=stageMap[stageIndex] || "Boss";
+  const pool=dungeonDatabase[key] || dungeonDatabase.Boss;
+  return JSON.parse(JSON.stringify(pool[Math.floor(Math.random()*pool.length)]));
 }
 /* === MONSTERS END === */
 
@@ -933,7 +998,7 @@ function ensureDailyShop(){
     const take=Math.min(count,sorted.length);
     for(let i=0;i<take;i++){
       const it=sorted[i];
-      const target=120 + Math.floor(rng()*76); // 120..195
+      const target=120 + Math.floor(rng()*76);
       it.price=Math.max(1, Math.min(it.price,target));
     }
   }
@@ -1011,17 +1076,14 @@ function openSmith(){
        <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Reparatur</div>
        ${repairBlock}
      </div>
-
      <div style="margin-top:14px;">
        <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Waffen</div>
        ${rows(wShow,"weapon")}
      </div>
-
      <div style="margin-top:14px;">
        <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Rüstungen</div>
        ${rows(aShow,"armor")}
-     </div>
-    `,
+     </div>`,
     `<button onclick="closePopup()">Zurück</button>`
   );
 }
@@ -1162,8 +1224,11 @@ function beginFight(m){
 
   document.getElementById("monster-name").innerText=monster.name;
   document.getElementById("monster-desc").innerText=monster.desc;
-  document.getElementById("monster-tier").innerText = monster.isBoss ? `Boss · Tier ${monster.tier} · Level ${monster.lvl}` : `Tier ${monster.tier} · Level ${monster.lvl}`;
-  setPortraitIndex(monster.portrait||0);
+  document.getElementById("monster-tier").innerText = monster.isBoss
+    ? `Boss · Level ${monster.lvl}`
+    : `Level ${monster.lvl} · Tier ${monster.tier}`;
+
+  setMonsterImage(monster.image || null);
 
   document.getElementById("attackBtn").disabled=false;
   updateCombatPotionBtn();
@@ -1172,19 +1237,15 @@ function beginFight(m){
 
 function spawnMonster(){
   hidePostFight();
+
   if(run.active){
     document.getElementById("exitDungeonBtn").style.display="inline-flex";
     document.getElementById("dungeonBtn").disabled=true;
     document.getElementById("nextBtn").disabled=true;
 
-    if(run.stage>=run.total){
-      beginFight(makeDungeonBoss());
-      document.getElementById("runInfo").innerText=`Dungeon: Boss-Kampf`;
-    } else {
-      const m=pickMonsterByRules();
-      beginFight(m);
-      document.getElementById("runInfo").innerText=`Dungeon: Raum ${run.stage+1}/${run.total}`;
-    }
+    const m=pickDungeonMonsterByStage(run.stage);
+    beginFight(m);
+    document.getElementById("runInfo").innerText = `Dungeon-Gegner ${run.stage+1}/5`;
   } else {
     document.getElementById("exitDungeonBtn").style.display="none";
     document.getElementById("dungeonBtn").disabled=false;
@@ -1240,7 +1301,6 @@ function dealPlayerDamage(mult,label){
   if(!isInBattle || monster.hp<=0) return 0;
 
   let dmg=Math.floor(calcPlayerDamageBase()*mult);
-
   if(monster.effects.vulnTurns>0) dmg=Math.floor(dmg*(1+monster.effects.vulnPct));
 
   const isCrit=Math.random()<critChance();
@@ -1267,7 +1327,6 @@ function playerAttack(){
   if(!isInBattle || monster.hp<=0) return;
 
   let dmg=calcPlayerDamageBase();
-
   if(monster.effects.vulnTurns>0) dmg=Math.floor(dmg*(1+monster.effects.vulnPct));
 
   const isCrit=Math.random()<critChance();
@@ -1302,7 +1361,6 @@ function monsterTurn(){
   if(dot==="monster_dead"){ winFight(); return; }
 
   let dmg=calcMonsterDamageBase();
-
   if(monster.effects.weakenTurns>0) dmg=Math.floor(dmg*(1-monster.effects.weakenPct));
 
   const def=getDefPct();
@@ -1363,7 +1421,8 @@ function winFight(){
   }
 
   if(run.active){
-    if(monster.isBoss){
+    run.stage++;
+    if(run.stage>=5){
       run.active=false;
       run.stage=0;
       run.chestReady=true;
@@ -1372,12 +1431,9 @@ function winFight(){
       document.getElementById("exitDungeonBtn").style.display="none";
       document.getElementById("dungeonBtn").disabled=false;
       document.getElementById("nextBtn").disabled=false;
-      log("Der Boss fällt. Eine Truhe erscheint.", "cInfo");
+      log("Der Dungeon ist bezwungen. Eine Truhe erscheint.", "cInfo");
     } else {
-      run.stage++;
-      if(run.stage>=run.total){
-        log("Du spürst eine Präsenz… Der Boss wartet.", "cInfo");
-      }
+      log(`Dungeon-Fortschritt: Gegner ${run.stage+1}/5 wartet.`, "cInfo");
     }
   }
 
@@ -1466,6 +1522,7 @@ function startDungeon(){
   if(isInBattle){ log("Du bist bereits im Kampf.", "cBad"); return; }
   run.active=true;
   run.stage=0;
+  run.total=4;
   document.getElementById("openChestBtn").style.display="none";
   document.getElementById("exitDungeonBtn").style.display="inline-flex";
   spawnMonster();
@@ -1485,7 +1542,7 @@ function exitDungeon(fromButton){
     document.getElementById("monster-desc").innerText=monster.desc;
     document.getElementById("monster-tier").innerText="";
     document.getElementById("runInfo").innerText="";
-    setPortraitIndex(0);
+    setMonsterImage(null);
     updateUI();
   }
 }
@@ -1515,7 +1572,7 @@ function showPostFight(victory){
 
   const loot = fightTracker?.loot ? `${fightTracker.loot.name} ${rarityTag(fightTracker.loot.rarity)}` : "Kein Loot.";
   const title = victory ? "Du hast gewonnen." : "Du hast verloren.";
-  const mode = run.active ? `Dungeon-Raum: ${Math.min(run.stage, run.total)}/${run.total}` : "Freier Kampf";
+  const mode = run.active ? `Dungeon-Gegner: ${Math.min(run.stage+1,5)}/5` : "Freier Kampf";
 
   st.innerHTML = `
     <div><span class="hl">${title}</span></div>
@@ -1568,7 +1625,8 @@ function saveNameFromEdit(){
 
 /* === UI START === */
 function updateUI(){
-  document.getElementById("buildLine").innerText=`Build: ${BUILD_INFO.name} v${BUILD_INFO.version} (${BUILD_INFO.build})`;
+  document.getElementById("buildLine").innerHTML =
+    `Build: ${BUILD_INFO.name} ${BUILD_INFO.version}<br>Versionshinweise: ${BUILD_INFO.notes}`;
 
   document.getElementById("lvl").innerText=player.lvl;
   document.getElementById("xp").innerText=`${fmt(player.xp)} / ${fmt(player.xpToNext)}`;
@@ -1697,7 +1755,7 @@ function tutorialFlow(){
         <b>Trank benutzen:</b> Du regenerierst einen Teil deiner maximalen Gesundheit. Im Kampf verbraucht das deine Runde.<br><br>
         <b>Schmied:</b> Dort kaufst du Waffen und Rüstungen. Rüstungen können beschädigt werden. Beim Schmied kannst du sie reparieren.<br><br>
         <b>Ausrüstung:</b> Im Inventar kannst du Items ausrüsten und verkaufen. Set-Boni gelten, wenn Waffe und Rüstung aus demselben Set stammen.<br><br>
-        <b>Dungeon-Run:</b> Eine Reihe von Kämpfen, am Ende wartet ein Boss. Danach erscheint eine Truhe.<br><br>
+        <b>Dungeon-Run:</b> A, B, C, D und dann der Boss.<br><br>
         <b>Regeneration:</b> Außerhalb des Kampfes regenerierst du regelmäßig Gesundheit.
       </div>
     </div>`,
@@ -1727,7 +1785,6 @@ function startFlow(){
     }
   }, 50);
 }
-
 function confirmNameAndTutorial(wantsTutorial){
   const inp=document.getElementById("playerNameInput");
   const raw=(inp?.value||"").trim();
@@ -1764,7 +1821,7 @@ function hardResetSaveUI(){
   isInBattle=false;
   fightTracker=null;
 
-  run={ active:false, stage:0, total:6, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
+  run={ active:false, stage:0, total:4, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
   pfx={ guardTurns:0,guardDef:0, berserkTurns:0,berserkAtk:0, critBonusTurns:0,critBonus:0, lifeStealTurns:0,lifeSteal:0 };
   skillCD={1:0,2:0,3:0};
 
@@ -1779,7 +1836,7 @@ function hardResetSaveUI(){
   hidePostFight();
   closePopup();
 
-  setPortraitIndex(0);
+  setMonsterImage(null);
   ensureDailyShop();
   ensureWeeklyShop();
   updateUI();
@@ -1820,7 +1877,6 @@ function tickRegen(){
 /* === INIT START === */
 (function init(){
   applySprite();
-
   ensureDailyShop();
   ensureWeeklyShop();
 
@@ -1835,7 +1891,7 @@ function tickRegen(){
   document.getElementById("monster-desc").innerText=monster.desc;
   document.getElementById("monster-tier").innerText="";
   document.getElementById("runInfo").innerText="";
-  setPortraitIndex(monster.portrait||0);
+  setMonsterImage(monster.image || null);
 
   updateUI();
 
