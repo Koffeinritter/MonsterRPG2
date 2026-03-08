@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--txt);font-family:Verdana,sans-serif;margin:0;padding:14px;display:flex;justify-content:center;}
-#game{width:1200px;background:var(--panel);border:4px solid var(--border);box-shadow:0 0 40px #000;padding:14px;display:flex;flex-direction:column;gap:12px;}
+#game{width:1220px;background:var(--panel);border:4px solid var(--border);box-shadow:0 0 40px #000;padding:14px;display:flex;flex-direction:column;gap:12px;}
 h1{text-align:center;color:var(--red);letter-spacing:4px;margin:6px 0;text-transform:uppercase;text-shadow:2px 2px 5px #000;}
 
 .header{
@@ -42,7 +42,7 @@ h1{text-align:center;color:var(--red);letter-spacing:4px;margin:6px 0;text-trans
 
 .monRow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:10px;}
 #monster-img{
-  width:330px;height:330px;border-radius:16px;background:#050505;
+  width:380px;height:380px;border-radius:18px;background:#050505;
   border:1px solid #2a2a2a;box-shadow:inset 0 0 70px #000, 0 0 25px #000;
   background-repeat:no-repeat;background-size:cover;background-position:center;
 }
@@ -185,7 +185,7 @@ input[type="text"]{
 @media (max-width:1200px){
   #game{width:100%}
   .layout{flex-direction:column}
-  #monster-img{width:270px;height:270px}
+  #monster-img{width:300px;height:300px}
   #lootFlash .inner{font-size:64px}
 }
 </style>
@@ -262,7 +262,6 @@ input[type="text"]{
         <div class="mut" style="margin-top:8px;">
           Kritische Treffer: 5% (1,5×). Loot-Drop: 8%. Fähigkeiten kosten Energie.
           Außerhalb des Kampfes regenerieren alle 15 Sekunden +1 Gesundheit und +1 Energie.
-          Monster-kritische Treffer können Rüstungen beschädigen.
         </div>
       </div>
 
@@ -338,8 +337,8 @@ input[type="text"]{
 <script>
 const BUILD_INFO = {
   name: "Dungeon Slayer",
-  version: "Beta 0.10.7",
-  build: "2026-03-08-7",
+  version: "Beta 0.10.8",
+  build: "2026-03-08-8",
   notes: "Fehlerbehebungen"
 };
 
@@ -375,7 +374,6 @@ function showLootFlash(){
   clearTimeout(showLootFlash._t);
   showLootFlash._t=setTimeout(()=>el.classList.remove("show"), 2000);
 }
-
 function xfnv1a(str){
   let h=2166136261>>>0;
   for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
@@ -403,50 +401,10 @@ function weekKey(){
   return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
 }
 
-const SAVE_VERSION=11;
+const SAVE_VERSION=12;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
-function snapshotForSave(){
-  return {
-    v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, run,pfx,
-    shopDaily,shopWeekly, lastRegenTick,
-    defeatedMonsters, tutorialWanted
-  };
-}
-function saveGame(){
-  const json=safeStringify(snapshotForSave());
-  if(json) localStorage.setItem(SAVE_KEY,json);
-}
-function loadGame(){
-  const raw=localStorage.getItem(SAVE_KEY);
-  if(!raw) return false;
-  const data=safeParse(raw);
-  if(!data || data.v!==SAVE_VERSION) return false;
-
-  player=data.player||player;
-  currentHp=typeof data.currentHp==="number"?data.currentHp:currentHp;
-  monster=data.monster||monster;
-  isInBattle=!!data.isInBattle;
-  run=data.run||run;
-  pfx=data.pfx||pfx;
-  shopDaily=data.shopDaily||shopDaily;
-  shopWeekly=data.shopWeekly||shopWeekly;
-  lastRegenTick = data.lastRegenTick || Date.now();
-  defeatedMonsters=Array.isArray(data.defeatedMonsters)?data.defeatedMonsters:[];
-  tutorialWanted=!!data.tutorialWanted;
-
-  if(!monster || monster.hp<=0) isInBattle=false;
-  currentHp=clamp(currentHp,1,getMaxHp());
-  player.energy=clamp(player.energy,0,player.maxEnergy);
-  return true;
-}
-function hardResetSave(){ localStorage.removeItem(SAVE_KEY); }
-window.addEventListener("beforeunload", saveGame);
-
-const INV_CAP=28;
-const BASE_CRIT=0.05, CRIT_MULT=1.5;
-const LOOT_CHANCE=0.08;
 
 let player={
   name:"",
@@ -465,15 +423,14 @@ function makeIdleMonster(){
   return {
     name:"Bereit…",
     desc:"Wähle „Nächster Kampf“ oder starte einen Dungeon.",
-    hp:0,maxHp:1,atk:0,lvl:0,tier:0,
-    image:null,
-    effects:newMonsterEffects(),
-    isBoss:false
+    hp:0,maxHp:1,atk:0,lvl:0,tier:0,image:null,
+    effects:newMonsterEffects(),isBoss:false
   };
 }
 
 let monster=makeIdleMonster();
 let isInBattle=false;
+let combatStarted=false;
 let fightTracker=null;
 
 let run={ active:false, stage:0, total:4, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
@@ -485,6 +442,50 @@ let shopWeekly={ key:"", items:[] };
 let lastRegenTick = Date.now();
 let tutorialWanted=false;
 let defeatedMonsters=[];
+
+function snapshotForSave(){
+  return {
+    v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, combatStarted, run,pfx,
+    shopDaily,shopWeekly, lastRegenTick, defeatedMonsters, tutorialWanted
+  };
+}
+function saveGame(){
+  const json=safeStringify(snapshotForSave());
+  if(json) localStorage.setItem(SAVE_KEY,json);
+}
+function loadGame(){
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw) return false;
+  const data=safeParse(raw);
+  if(!data || data.v!==SAVE_VERSION) return false;
+
+  player=data.player||player;
+  currentHp=typeof data.currentHp==="number"?data.currentHp:currentHp;
+  monster=data.monster||monster;
+  isInBattle=!!data.isInBattle;
+  combatStarted=!!data.combatStarted;
+  run=data.run||run;
+  pfx=data.pfx||pfx;
+  shopDaily=data.shopDaily||shopDaily;
+  shopWeekly=data.shopWeekly||shopWeekly;
+  lastRegenTick = data.lastRegenTick || Date.now();
+  defeatedMonsters=Array.isArray(data.defeatedMonsters)?data.defeatedMonsters:[];
+  tutorialWanted=!!data.tutorialWanted;
+
+  if(!monster || monster.hp<=0){
+    isInBattle=false;
+    combatStarted=false;
+  }
+  currentHp=clamp(currentHp,1,getMaxHp());
+  player.energy=clamp(player.energy,0,getMaxEnergy());
+  return true;
+}
+function hardResetSave(){ localStorage.removeItem(SAVE_KEY); }
+window.addEventListener("beforeunload", saveGame);
+
+const INV_CAP=28;
+const BASE_CRIT=0.05, CRIT_MULT=1.5;
+const LOOT_CHANCE=0.08;
 
 function isDefeatedMonster(name){ return defeatedMonsters.includes(name); }
 function markMonsterDefeated(name){
@@ -693,28 +694,24 @@ function getMaxHp(){
   const setB=equippedSetBonus();
   const aff=sumAffixes();
   const comp=sumCompanionBonus();
-  const extra=(player.armor?.hp||0)+(setB?.bonus.hp||0)+(aff.hpFlat||0)+(comp.hp||0);
-  return player.baseHp+extra;
+  return player.baseHp + (player.armor?.hp||0) + (setB?.bonus.hp||0) + (aff.hpFlat||0) + (comp.hp||0);
 }
 function getMaxEnergy(){
-  const aff=sumAffixes();
-  return player.maxEnergy + (aff.energy||0);
+  return player.maxEnergy + (sumAffixes().energy||0);
 }
 function getAtk(){
   const setB=equippedSetBonus();
   const aff=sumAffixes();
   const comp=sumCompanionBonus();
-  const extra=(player.weapon?.atk||0)+(setB?.bonus.atk||0)+(aff.atkFlat||0)+(comp.atk||0);
   const buff=(pfx.berserkTurns>0?pfx.berserkAtk:0);
-  return player.baseAtk+extra+buff;
+  return player.baseAtk + (player.weapon?.atk||0) + (setB?.bonus.atk||0) + (aff.atkFlat||0) + (comp.atk||0) + buff;
 }
 function getDefPct(){
   const setB=equippedSetBonus();
   const aff=sumAffixes();
   const comp=sumCompanionBonus();
-  const base=(player.armor?.def||0)+(setB?.bonus.def||0)+(aff.defFlat||0)+(comp.def||0);
   const guard=(pfx.guardTurns>0?pfx.guardDef:0);
-  return clamp(base+guard,0,80);
+  return clamp((player.armor?.def||0) + (setB?.bonus.def||0) + (aff.defFlat||0) + (comp.def||0) + guard,0,80);
 }
 function critChance(){
   const aff=sumAffixes(); const comp=sumCompanionBonus();
@@ -836,13 +833,8 @@ function pickMonsterByRules(){
   } else if(player.lvl===2){
     weighted=[{level:2,weight:80},{level:1,weight:20}];
   } else {
-    weighted=[
-      {level:player.lvl,weight:70},
-      {level:player.lvl-1,weight:20},
-      {level:player.lvl+1,weight:10}
-    ];
+    weighted=[{level:player.lvl,weight:70},{level:player.lvl-1,weight:20},{level:player.lvl+1,weight:10}];
   }
-
   const targetLevel=chooseByWeights(weighted);
   let pool=normalMonsterDatabase.filter(m=>m.lvl===targetLevel && !isDefeatedMonster(m.name));
   if(!pool.length) pool=normalMonsterDatabase.filter(m=>!isDefeatedMonster(m.name));
@@ -914,6 +906,7 @@ function tryDrop(context){
   }
   return null;
 }
+
 function renderInventory(){
   const invEl=document.getElementById("inventory");
   const info=document.getElementById("invInfo");
@@ -958,7 +951,7 @@ function equipItem(idx){
     currentHp=Math.min(currentHp,getMaxHp());
   }
   player.inv.splice(idx,1);
-  player.energy = Math.min(player.energy, getMaxEnergy());
+  player.energy=Math.min(player.energy,getMaxEnergy());
   log(`Ausgerüstet: <b>${it.name}</b> ${rarityTag(it.rarity)}`, "cInfo");
   updateUI();
 }
@@ -993,8 +986,7 @@ function repairCost(){
   if(!player.armor) return null;
   const missing=player.armor.maxDur - player.armor.dur;
   if(missing<=0) return {missing:0,cost:0};
-  const cost=player.armor.lvlReq * 4 * missing;
-  return {missing,cost};
+  return {missing,cost:player.armor.lvlReq * 4 * missing};
 }
 function repairArmor(){
   if(!player.armor) return;
@@ -1011,20 +1003,10 @@ function repairArmor(){
 function ensureDailyShop(){
   const key=dayKey();
   if(shopDaily.key===key && shopDaily.weapons.length===50 && shopDaily.armors.length===50) return;
-
   const rng=mulberry32(xfnv1a(`daily::${key}::seed`));
-  shopDaily.key=key;
-  shopDaily.weapons=[];
-  shopDaily.armors=[];
-
-  for(let i=0;i<50;i++){
-    const lvl=Math.max(1, Math.floor(1 + rng()*(player.lvl+6)));
-    shopDaily.weapons.push(makeWeapon(rng,lvl,"smith"));
-  }
-  for(let i=0;i<50;i++){
-    const lvl=Math.max(1, Math.floor(1 + rng()*(player.lvl+6)));
-    shopDaily.armors.push(makeArmor(rng,lvl,"smith"));
-  }
+  shopDaily.key=key; shopDaily.weapons=[]; shopDaily.armors=[];
+  for(let i=0;i<50;i++) shopDaily.weapons.push(makeWeapon(rng,Math.max(1, Math.floor(1 + rng()*(player.lvl+6))),"smith"));
+  for(let i=0;i<50;i++) shopDaily.armors.push(makeArmor(rng,Math.max(1, Math.floor(1 + rng()*(player.lvl+6))),"smith"));
 
   function forceCheap(list,count){
     const sorted=[...list].sort((a,b)=>a.price-b.price);
@@ -1041,11 +1023,8 @@ function ensureDailyShop(){
 function ensureWeeklyShop(){
   const key=weekKey();
   if(shopWeekly.key===key && shopWeekly.items.length===30) return;
-
   const rng=mulberry32(xfnv1a(`weekly::${key}::seed`));
-  shopWeekly.key=key;
-  shopWeekly.items=[];
-
+  shopWeekly.key=key; shopWeekly.items=[];
   const maxLvl=Math.max(player.lvl+10, 12);
   for(let i=0;i<30;i++){
     const lvl=Math.max(1, Math.floor(1 + rng()*maxLvl));
@@ -1059,19 +1038,9 @@ function ensureWeeklyShop(){
 function openSmith(){
   ensureDailyShop();
   const rc=repairCost();
-
-  const lvlMin=Math.max(1, player.lvl-1);
-  const lvlMax=player.lvl+3;
-
-  const wList=shopDaily.weapons
-    .filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax)
-    .sort((a,b)=>a.price-b.price)
-    .slice(0,20);
-  const aList=shopDaily.armors
-    .filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax)
-    .sort((a,b)=>a.price-b.price)
-    .slice(0,20);
-
+  const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
+  const wList=shopDaily.weapons.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax).sort((a,b)=>a.price-b.price).slice(0,20);
+  const aList=shopDaily.armors.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax).sort((a,b)=>a.price-b.price).slice(0,20);
   const wShow=(wList.length>=3)?wList:[...shopDaily.weapons].sort((a,b)=>a.price-b.price).slice(0,20);
   const aShow=(aList.length>=3)?aList:[...shopDaily.armors].sort((a,b)=>a.price-b.price).slice(0,20);
 
@@ -1113,33 +1082,22 @@ function openSmith(){
   openPopup("Schmied (täglich neu, mit Seed)",
     `<div class="mut">Angebot für heute: ${shopDaily.key}. Sortiert nach dem günstigsten Preis.</div>
      <div style="margin-top:10px;">
-       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Reparatur</div>
-       ${repairBlock}
+       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Reparatur</div>${repairBlock}
      </div>
-     <div style="margin-top:14px;">
-       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Waffen</div>
-       ${rows(wShow,"weapon")}
-     </div>
-     <div style="margin-top:14px;">
-       <div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Rüstungen</div>
-       ${rows(aShow,"armor")}
-     </div>`,
+     <div style="margin-top:14px;"><div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Waffen</div>${rows(wShow,"weapon")}</div>
+     <div style="margin-top:14px;"><div class="sideTitle" style="border:none;margin:0 0 6px 0;padding:0">Rüstungen</div>${rows(aShow,"armor")}</div>`,
     `<button onclick="closePopup()">Zurück</button>`
   );
 }
 function buyFromSmith(type, shownIdx){
   const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
   const source=(type==="weapon")?shopDaily.weapons:shopDaily.armors;
-  const filtered=source
-    .filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax)
-    .sort((a,b)=>a.price-b.price);
+  const filtered=source.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax).sort((a,b)=>a.price-b.price);
   const list=(filtered.length>=3)?filtered.slice(0,20):[...source].sort((a,b)=>a.price-b.price).slice(0,20);
   const it=list[shownIdx];
   if(!it) return;
-
   if(player.gold<it.price){ log("Nicht genug Gold.", "cBad"); return; }
   if(player.inv.length>=INV_CAP){ log("Inventar voll.", "cBad"); return; }
-
   player.gold-=it.price;
   player.inv.unshift(JSON.parse(JSON.stringify(it)));
   log(`Gekauft: <b>${it.name}</b> ${rarityTag(it.rarity)}.`, "cGold");
@@ -1149,9 +1107,7 @@ function buyFromSmith(type, shownIdx){
 function previewEquip(type, shownIdx){
   const lvlMin=Math.max(1, player.lvl-1), lvlMax=player.lvl+3;
   const source=(type==="weapon")?shopDaily.weapons:shopDaily.armors;
-  const filtered=source
-    .filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax)
-    .sort((a,b)=>a.price-b.price);
+  const filtered=source.filter(x=>x.lvlReq>=lvlMin && x.lvlReq<=lvlMax).sort((a,b)=>a.price-b.price);
   const list=(filtered.length>=3)?filtered.slice(0,20):[...source].sort((a,b)=>a.price-b.price).slice(0,20);
   const it=list[shownIdx];
   if(!it) return;
@@ -1159,18 +1115,11 @@ function previewEquip(type, shownIdx){
   const cur=(type==="weapon")?player.weapon:player.armor;
   const curTxt=cur?`${cur.name} ${rarityTag(cur.rarity)}`:"—";
   const newTxt=`${it.name} ${rarityTag(it.rarity)}`;
-  const curStats=cur? (type==="weapon"
-      ? `Angriff +${cur.atk}`
-      : `Verteidigung ${cur.def}% · Gesundheit +${cur.hp} · Haltbarkeit ${cur.dur}/${cur.maxDur}`) : "—";
-  const newStats=(type==="weapon"
-      ? `Angriff +${it.atk}`
-      : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur}`);
-
+  const curStats=cur? (type==="weapon" ? `Angriff +${cur.atk}` : `Verteidigung ${cur.def}% · Gesundheit +${cur.hp} · Haltbarkeit ${cur.dur}/${cur.maxDur}`) : "—";
+  const newStats=(type==="weapon" ? `Angriff +${it.atk}` : `Verteidigung ${it.def}% · Gesundheit +${it.hp} · Haltbarkeit ${it.dur}/${it.maxDur}`);
   openPopup("Vergleich",
-    `<div><b>Aktuell:</b> ${curTxt}</div>
-     <div class="mut">${curStats}</div>
-     <div style="margin-top:10px;"><b>Neu:</b> ${newTxt}</div>
-     <div class="mut">${newStats}</div>
+    `<div><b>Aktuell:</b> ${curTxt}</div><div class="mut">${curStats}</div>
+     <div style="margin-top:10px;"><b>Neu:</b> ${newTxt}</div><div class="mut">${newStats}</div>
      <div class="mut" style="margin-top:10px;">Zusatzwerte: ${affixSummary(it)}</div>`,
     `<button onclick="openSmith()">Zurück zum Schmied</button> <button onclick="closePopup()">Schließen</button>`
   );
@@ -1197,10 +1146,8 @@ function openWeekly(){
         </div>
       </div>`;
   }).join("");
-
   openPopup("Weekly-Shop (wöchentlich neu, mit Seed)",
-    `<div class="mut">Woche: ${shopWeekly.key}. Sortiert nach dem günstigsten Preis.</div>
-     <div style="margin-top:10px;">${rows}</div>`,
+    `<div class="mut">Woche: ${shopWeekly.key}. Sortiert nach dem günstigsten Preis.</div><div style="margin-top:10px;">${rows}</div>`,
     `<button onclick="closePopup()">Zurück</button>`
   );
 }
@@ -1228,9 +1175,7 @@ function openAlchemy(){
     return `
       <div class="itemRow">
         <div class="itMeta">
-          <b>${it.name}</b>
-          <div class="sub">${it.desc}</div>
-          <div class="sub">Preis: ${fmt(it.price)} Gold</div>
+          <b>${it.name}</b><div class="sub">${it.desc}</div><div class="sub">Preis: ${fmt(it.price)} Gold</div>
         </div>
         <div class="itBtns">
           <button class="btnBuy" ${(!canBuy?'disabled':'')} onclick="buyAlchemy(${idx})">Kaufen</button>
@@ -1238,8 +1183,7 @@ function openAlchemy(){
       </div>`;
   }).join("");
   openPopup("Alchemieladen",
-    `<div class="mut">Hier bekommst du Tränke und dunkle Hilfsmittel.</div>
-     <div style="margin-top:10px;">${rows}</div>`,
+    `<div class="mut">Hier bekommst du Tränke und dunkle Hilfsmittel.</div><div style="margin-top:10px;">${rows}</div>`,
     `<button onclick="closePopup()">Zurück</button>`
   );
 }
@@ -1258,6 +1202,7 @@ function setIdleState(message){
   monster=makeIdleMonster();
   monster.desc=message || "Wähle „Nächster Kampf“ oder starte einen Dungeon.";
   isInBattle=false;
+  combatStarted=false;
   document.getElementById("monster-name").innerText="Bereit…";
   document.getElementById("monster-desc").innerText=monster.desc;
   document.getElementById("monster-tier").innerText="";
@@ -1272,14 +1217,12 @@ function beginFight(m){
   monster.effects=monster.effects||newMonsterEffects();
 
   isInBattle=true;
+  combatStarted=false;
   fightTracker={ monsterName:monster.name, dmgDealt:0, dmgTaken:0, loot:null, isBoss:!!monster.isBoss, gold:0, xp:0 };
 
   document.getElementById("monster-name").innerText=monster.name;
   document.getElementById("monster-desc").innerText=monster.desc;
-  document.getElementById("monster-tier").innerText = monster.isBoss
-    ? `Boss · Level ${monster.lvl}`
-    : `Level ${monster.lvl} · Tier ${monster.tier}`;
-
+  document.getElementById("monster-tier").innerText = monster.isBoss ? `Boss · Level ${monster.lvl}` : `Level ${monster.lvl} · Tier ${monster.tier}`;
   setMonsterImage(monster.image || null);
   document.getElementById("attackBtn").disabled=false;
   updateCombatPotionBtn();
@@ -1322,6 +1265,7 @@ function spawnMonster(){
 }
 function endFight(victory){
   isInBattle=false;
+  combatStarted=false;
   document.getElementById("attackBtn").disabled=true;
   updateCombatPotionBtn();
 
@@ -1347,15 +1291,9 @@ function applyTurnEffects(){
   if(monster.effects.weakenTurns>0) monster.effects.weakenTurns--;
   return "ok";
 }
-function calcPlayerDamageBase(){
-  const atk=getAtk();
-  const roll=Math.floor(Math.random()*5);
-  return Math.max(1, atk + roll);
-}
-function calcMonsterDamageBase(){
-  const roll=Math.floor(Math.random()*4);
-  return Math.max(1, monster.atk + roll);
-}
+function calcPlayerDamageBase(){ return Math.max(1, getAtk() + Math.floor(Math.random()*5)); }
+function calcMonsterDamageBase(){ return Math.max(1, monster.atk + Math.floor(Math.random()*4)); }
+
 function dealPlayerDamage(mult,label){
   if(!isInBattle || monster.hp<=0) return 0;
 
@@ -1378,11 +1316,11 @@ function dealPlayerDamage(mult,label){
     const heal=Math.floor(dmg*ls);
     if(heal>0) healBy(heal, "Lebensraub");
   }
-
   return dmg;
 }
 function playerAttack(){
   if(!isInBattle || monster.hp<=0) return;
+  combatStarted = true;
 
   let dmg=calcPlayerDamageBase();
   if(monster.effects.vulnTurns>0) dmg=Math.floor(dmg*(1+monster.effects.vulnPct));
@@ -1404,11 +1342,7 @@ function playerAttack(){
     if(heal>0) healBy(heal, "Lebensraub");
   }
 
-  if(monster.hp<=0){
-    winFight();
-    return;
-  }
-
+  if(monster.hp<=0){ winFight(); return; }
   monsterTurn();
 }
 function monsterTurn(){
@@ -1420,14 +1354,12 @@ function monsterTurn(){
   let dmg=calcMonsterDamageBase();
   if(monster.effects.weakenTurns>0) dmg=Math.floor(dmg*(1-monster.effects.weakenPct));
 
-  const def=getDefPct();
-  dmg=Math.max(1, Math.floor(dmg*(1-def/100)));
+  dmg=Math.max(1, Math.floor(dmg*(1-getDefPct()/100)));
 
   const mCrit=(Math.random()<BASE_CRIT);
   if(mCrit){
     dmg=Math.floor(dmg*CRIT_MULT);
     log(`<span class="cCrit">Kritischer Treffer!</span> ${monster.name} trifft dich für ${fmt(dmg)}.`, "cCrit");
-
     if(player.armor){
       player.armor.dur -= 1;
       log(`Deine Rüstung nimmt Schaden: Haltbarkeit ${player.armor.dur}/${player.armor.maxDur}.`, "cBad");
@@ -1443,24 +1375,16 @@ function monsterTurn(){
   currentHp-=dmg;
   fightTracker.dmgTaken+=dmg;
 
-  if(currentHp<=0){
-    dieFight();
-    return;
-  }
-
+  if(currentHp<=0){ dieFight(); return; }
   updateUI();
 }
 function winFight(){
   isInBattle=false;
   markMonsterDefeated(monster.name);
 
-  const g=monster.gold||0;
-  const x=monster.xp||0;
-  player.gold+=g;
-  player.xp+=x;
-
-  fightTracker.gold=g;
-  fightTracker.xp=x;
+  const g=monster.gold||0, x=monster.xp||0;
+  player.gold+=g; player.xp+=x;
+  fightTracker.gold=g; fightTracker.xp=x;
 
   log(`Sieg! +${fmt(g)} Gold, +${fmt(x)} Erfahrungspunkte.`, "cGold");
 
@@ -1494,12 +1418,13 @@ function winFight(){
     }
   }
 
-  player.energy = Math.min(player.energy, getMaxEnergy());
+  player.energy=Math.min(player.energy,getMaxEnergy());
   updateUI();
   endFight(true);
 }
 function dieFight(){
   isInBattle=false;
+  combatStarted=false;
   const lost=Math.floor(player.gold*0.2);
   player.gold=Math.max(0, player.gold-lost);
   currentHp=getMaxHp();
@@ -1528,16 +1453,13 @@ function usePotion(inCombat){
   updateUI();
 
   if(inCombat && isInBattle){
+    combatStarted = true;
     monsterTurn();
   }
 }
 function updateCombatPotionBtn(){
   const btn=document.getElementById("combatPotionBtn");
-  if(isInBattle && player.potions>0 && currentHp<getMaxHp()){
-    btn.style.display="inline-flex";
-  } else {
-    btn.style.display="none";
-  }
+  btn.style.display = (isInBattle && player.potions>0 && currentHp<getMaxHp()) ? "inline-flex" : "none";
 }
 function useSkill(n){
   const cls=getClass();
@@ -1550,46 +1472,41 @@ function useSkill(n){
     return;
   }
 
+  combatStarted = true;
   player.energy -= s.cost;
   log(`<b>${s.name}</b> wird eingesetzt.`, "cInfo");
   s.use();
 
-  if(monster.hp<=0){
-    winFight();
-    return;
-  }
-
+  if(monster.hp<=0){ winFight(); return; }
   monsterTurn();
 }
 function showSkillInfo(n){
   const cls=getClass();
   if(!cls) return;
   const s=cls.skills[n-1];
-  openPopup("Skill-Info", `<div><b>${s.icon} ${s.name}</b></div><div class="mut" style="margin-top:8px;">${s.info}</div><div class="mut" style="margin-top:8px;">Energiekosten: ${s.cost}</div>`, `<button onclick="closePopup()">Schließen</button>`);
+  openPopup("Skill-Info",
+    `<div><b>${s.icon} ${s.name}</b></div><div class="mut" style="margin-top:8px;">${s.info}</div><div class="mut" style="margin-top:8px;">Energiekosten: ${s.cost}</div>`,
+    `<button onclick="closePopup()">Schließen</button>`
+  );
 }
 
 function startDungeon(){
   hidePostFight();
   if(isInBattle){ log("Du bist bereits im Kampf.", "cBad"); return; }
-  run.active=true;
-  run.stage=0;
-  run.total=4;
+  run.active=true; run.stage=0; run.total=4;
   document.getElementById("openChestBtn").style.display="none";
   document.getElementById("exitDungeonBtn").style.display="inline-flex";
   spawnMonster();
 }
 function exitDungeon(fromButton){
   if(!run.active) return;
-  run.active=false;
-  run.stage=0;
+  run.active=false; run.stage=0;
   document.getElementById("exitDungeonBtn").style.display="none";
   document.getElementById("dungeonBtn").disabled=false;
   document.getElementById("nextBtn").disabled=false;
   log("Du verlässt den Dungeon-Run.", "cInfo");
   updateUI();
-  if(fromButton){
-    setIdleState("Wähle „Nächster Kampf“ oder starte einen Dungeon.");
-  }
+  if(fromButton) setIdleState("Wähle „Nächster Kampf“ oder starte einen Dungeon.");
 }
 function openDungeonChest(){
   if(!run.chestReady){ log("Keine Truhe bereit.", "cBad"); return; }
@@ -1602,10 +1519,7 @@ function openDungeonChest(){
   for(let i=0;i<lootCount;i++){
     const lvl=Math.max(1, player.lvl + 2 + Math.floor(rng()*4));
     const it=(rng()<0.5)?makeWeapon(rng,lvl,"boss"):makeArmor(rng,lvl,"boss");
-    if(addToInvOrDrop(it)){
-      found.push(it);
-      showLootFlash();
-    }
+    if(addToInvOrDrop(it)){ found.push(it); showLootFlash(); }
   }
   log("Du öffnest die Truhe.", "cGold");
   found.forEach(it=>log(`Truhe: <b>${it.name}</b> ${rarityTag(it.rarity)}`, "cGold"));
@@ -1625,13 +1539,10 @@ function showPostFight(victory){
     <div><span class="hl">${title}</span></div>
     <div class="mut" style="margin-top:6px;">Modus: ${mode}</div>
     <div class="mut" style="margin-top:6px;">
-      Schaden verursacht: <b>${fmt(fightTracker?.dmgDealt||0)}</b> ·
-      Schaden erhalten: <b>${fmt(fightTracker?.dmgTaken||0)}</b>
+      Schaden verursacht: <b>${fmt(fightTracker?.dmgDealt||0)}</b> · Schaden erhalten: <b>${fmt(fightTracker?.dmgTaken||0)}</b>
     </div>
     <div class="mut" style="margin-top:6px;">Belohnung: <b>${fmt(fightTracker?.gold||0)}</b> Gold · <b>${fmt(fightTracker?.xp||0)}</b> Erfahrungspunkte</div>
-    <div class="mut" style="margin-top:6px;">Loot: ${loot}</div>
-  `;
-
+    <div class="mut" style="margin-top:6px;">Loot: ${loot}</div>`;
   pfExitBtn.disabled = !run.active;
   pf.style.display="block";
   updateUI();
@@ -1639,10 +1550,7 @@ function showPostFight(victory){
 function hidePostFight(){ document.getElementById("postFight").style.display="none"; }
 function pfNextFight(){ closePopup(); spawnMonster(); }
 function pfUsePotion(){ usePotion(false); }
-function pfExitDungeon(){
-  if(run.active) exitDungeon(true);
-  hidePostFight();
-}
+function pfExitDungeon(){ if(run.active) exitDungeon(true); hidePostFight(); }
 
 function openNameChange(){
   openPopup("Name ändern",
@@ -1651,8 +1559,7 @@ function openNameChange(){
      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
        <input id="playerNameEdit" type="text" maxlength="18" value="${(player.name||"").replace(/"/g,'&quot;')}" placeholder="Zum Beispiel: Mika" style="flex:1;min-width:220px;">
      </div>`,
-    `<button class="btnBuy" onclick="saveNameFromEdit()">Speichern</button>
-     <button onclick="closePopup()">Abbrechen</button>`
+    `<button class="btnBuy" onclick="saveNameFromEdit()">Speichern</button><button onclick="closePopup()">Abbrechen</button>`
   );
   setTimeout(()=>{
     const inp=document.getElementById("playerNameEdit");
@@ -1721,8 +1628,7 @@ function updateUI(){
   const mHp=Math.max(0, Math.floor(monster.hp||0));
   const mMax=Math.max(1, Math.floor(monster.maxHp||1));
   document.getElementById("monster-hp-text").innerText = (isInBattle?`${fmt(mHp)}/${fmt(mMax)}`:"—");
-  const pct = isInBattle ? clamp((mHp/mMax)*100,0,100) : 0;
-  document.getElementById("monster-hp-bar").style.width = pct+"%";
+  document.getElementById("monster-hp-bar").style.width = (isInBattle ? clamp((mHp/mMax)*100,0,100) : 0) + "%";
 
   const fx=[];
   if(monster?.effects){
@@ -1747,15 +1653,12 @@ function openClassPicker(force){
   const rows=CLASSES.map(c=>`
     <div class="itemRow">
       <div class="itMeta">
-        <b>${c.name}</b>
-        <div class="sub">${c.desc}</div>
-        <div class="sub">Skills: ${c.skills.map(s=>`${s.icon} ${s.name}`).join(" · ")}</div>
+        <b>${c.name}</b><div class="sub">${c.desc}</div><div class="sub">Skills: ${c.skills.map(s=>`${s.icon} ${s.name}`).join(" · ")}</div>
       </div>
-      <div class="itBtns">
-        <button class="btnBuy" onclick="selectClass('${c.id}')">Wählen</button>
-      </div>
+      <div class="itBtns"><button class="btnBuy" onclick="selectClass('${c.id}')">Wählen</button></div>
     </div>`).join("");
-  openPopup("Klasse wählen", `<div class="mut">Wähle deine Klasse. Diese bestimmt deine drei Skills.</div><div style="margin-top:10px;">${rows}</div>`,
+  openPopup("Klasse wählen",
+    `<div class="mut">Wähle deine Klasse. Diese bestimmt deine drei Skills.</div><div style="margin-top:10px;">${rows}</div>`,
     force?``:`<button onclick="closePopup()">Zurück</button>`
   );
 }
@@ -1770,15 +1673,11 @@ function selectClass(id){
 function openCompanionPicker(force){
   const rows=COMPANIONS.map(c=>`
     <div class="itemRow">
-      <div class="itMeta">
-        <b>${c.name}</b>
-        <div class="sub">${c.desc}</div>
-      </div>
-      <div class="itBtns">
-        <button class="btnBuy" onclick="selectCompanion('${c.id}')">Wählen</button>
-      </div>
+      <div class="itMeta"><b>${c.name}</b><div class="sub">${c.desc}</div></div>
+      <div class="itBtns"><button class="btnBuy" onclick="selectCompanion('${c.id}')">Wählen</button></div>
     </div>`).join("");
-  openPopup("Begleiter wählen", `<div class="mut">Wähle deinen Begleiter. Er gibt dir dauerhaft einen Bonus.</div><div style="margin-top:10px;">${rows}</div>`,
+  openPopup("Begleiter wählen",
+    `<div class="mut">Wähle deinen Begleiter. Er gibt dir dauerhaft einen Bonus.</div><div style="margin-top:10px;">${rows}</div>`,
     force?``:`<button onclick="closePopup()">Zurück</button>`
   );
 }
@@ -1787,10 +1686,7 @@ function selectCompanion(id){
   log(`Begleiter gewählt: <b>${getCompanion().name}</b>.`, "cInfo");
   closePopup();
   updateUI();
-  if(tutorialWanted){
-    tutorialFlow();
-    tutorialWanted=false;
-  }
+  if(tutorialWanted){ tutorialFlow(); tutorialWanted=false; }
 }
 
 function tutorialFlow(){
@@ -1799,32 +1695,19 @@ function tutorialFlow(){
       <div><b>Willkommen bei Dungeon Slayer.</b></div>
       <div class="mut" style="margin-top:10px;">
         <b>Ablauf eines Kampfes:</b> Du startest mit „Nächster Kampf“ oder im Dungeon einen neuen Kampf. Mit „Angriff“ greifst du das Monster an. Wenn das Monster danach noch lebt, schlägt es zurück. Alternativ kannst du eine Fähigkeit benutzen oder einen Trank trinken. Nach dem Kampf bekommst du Gold, Erfahrungspunkte und mit etwas Glück Loot.<br><br>
-
-        <b>Level:</b> Dein Level zeigt, wie weit dein Charakter entwickelt ist. Mit höheren Leveln werden deine Grundwerte besser und stärkere Gegner sowie bessere Ausrüstung werden interessant.<br><br>
-
-        <b>Erfahrungspunkte:</b> Erfahrungspunkte erhältst du für Siege. Wenn die Anzeige voll ist, steigst du ein Level auf.<br><br>
-
-        <b>Gesundheit:</b> Das sind deine Lebenspunkte. Fallen sie auf null, verlierst du den Kampf. Außerhalb des Kampfes regenerierst du alle 15 Sekunden 1 Gesundheit.<br><br>
-
-        <b>Angriff:</b> Angriff bestimmt, wie viel Schaden du mit normalen Treffern machst.<br><br>
-
-        <b>Verteidigung:</b> Verteidigung verringert den Schaden, den du von Monstern erhältst.<br><br>
-
-        <b>Energie:</b> Energie brauchst du für Klassenfähigkeiten. Du hast 100 Energie. Außerhalb des Kampfes regenerierst du alle 15 Sekunden 1 Energie.<br><br>
-
-        <b>Schmied:</b> Beim Schmied kaufst du Waffen und Rüstungen. Dort kannst du auch deine ausgerüstete Rüstung reparieren. Die Angebote sind nach dem günstigsten Preis sortiert.<br><br>
-
-        <b>Weekly-Shop:</b> Hier findest du besondere Angebote, oft auch für höhere Level. Auch hier ist alles nach Preis sortiert.<br><br>
-
-        <b>Alchemieladen:</b> Im Alchemieladen kaufst du Tränke und weitere Hilfsmittel wie Energie- oder Verstärkungsgegenstände.<br><br>
-
-        <b>Ausrüstung:</b> Waffen erhöhen deinen Angriff. Rüstungen erhöhen vor allem Verteidigung und Gesundheit. Manche Ausrüstung gibt Zusatzwerte oder Set-Boni.<br><br>
-
-        <b>Monsterbibliothek:</b> Jeder Monster-Gegner kann nur ein einziges Mal besiegt werden. Bereits besiegte Gegner tauchen nicht erneut auf.<br><br>
-
-        <b>Loot:</b> Wenn Loot gewonnen wird, erscheint eine große Anzeige. Danach landet der Gegenstand in deinem Inventar, falls dort noch Platz ist.<br><br>
-
-        <b>Dungeon:</b> Im Dungeon kämpfst du nacheinander gegen A, B, C, D und dann den Boss. Nur wenn du gerade im Dungeon bist, kannst du ihn auch wieder verlassen.
+        <b>Level:</b> Dein Level zeigt, wie weit dein Charakter entwickelt ist.<br><br>
+        <b>Erfahrungspunkte:</b> Wenn die Anzeige voll ist, steigst du ein Level auf.<br><br>
+        <b>Gesundheit:</b> Außerhalb des echten Kampfes regenerierst du alle 15 Sekunden 1 Gesundheit.<br><br>
+        <b>Angriff:</b> Angriff bestimmt, wie viel Schaden du machst.<br><br>
+        <b>Verteidigung:</b> Verteidigung verringert erlittenen Schaden.<br><br>
+        <b>Energie:</b> Du hast 100 Energie. Außerhalb des echten Kampfes regenerierst du alle 15 Sekunden 1 Energie.<br><br>
+        <b>Schmied:</b> Beim Schmied kaufst du Waffen und Rüstungen und reparierst deine Rüstung.<br><br>
+        <b>Weekly-Shop:</b> Hier findest du besondere Angebote.<br><br>
+        <b>Alchemieladen:</b> Hier kaufst du Tränke und Hilfsmittel.<br><br>
+        <b>Ausrüstung:</b> Waffen erhöhen Angriff, Rüstungen erhöhen Verteidigung und Gesundheit.<br><br>
+        <b>Monsterbibliothek:</b> Jeder Monster-Gegner kann nur ein einziges Mal besiegt werden.<br><br>
+        <b>Loot:</b> Wenn Loot gewonnen wird, erscheint eine große Anzeige.<br><br>
+        <b>Dungeon:</b> Im Dungeon kämpfst du nacheinander gegen A, B, C, D und dann den Boss.
       </div>
     </div>`,
     `<button onclick="closePopup()">Los geht’s</button>`
@@ -1839,10 +1722,8 @@ function startFlow(){
        <input id="playerNameInput" type="text" maxlength="18" placeholder="Zum Beispiel: Mika" style="flex:1;min-width:220px;">
      </div>
      <div class="mut" style="margin-top:10px;"><b>Soll das Tutorial angezeigt werden?</b></div>`,
-    `<button class="btnBuy" onclick="confirmNameAndTutorial(true)">Ja</button>
-     <button onclick="confirmNameAndTutorial(false)">Nein</button>`
+    `<button class="btnBuy" onclick="confirmNameAndTutorial(true)">Ja</button><button onclick="confirmNameAndTutorial(false)">Nein</button>`
   );
-
   setTimeout(()=>{
     const inp=document.getElementById("playerNameInput");
     if(inp){
@@ -1864,29 +1745,19 @@ function confirmNameAndTutorial(wantsTutorial){
 
 function hardResetSaveUI(){
   hardResetSave();
-
   player={
-    name:"",
-    lvl:1,xp:0,xpToNext:100,
-    baseHp:100,baseAtk:12,
-    gold:100,potions:2,
-    weapon:null,armor:null,
-    inv:[],
-    classId:null,companionId:null,
-    energy:100,maxEnergy:100
+    name:"", lvl:1,xp:0,xpToNext:100, baseHp:100,baseAtk:12, gold:100,potions:2,
+    weapon:null,armor:null, inv:[], classId:null,companionId:null, energy:100,maxEnergy:100
   };
   currentHp=100;
-
   monster=makeIdleMonster();
   isInBattle=false;
+  combatStarted=false;
   fightTracker=null;
-
   run={ active:false, stage:0, total:4, tierBase:2, chestReady:false, chestLoot:null, chestSeed:"" };
   resetTemporaryEffects();
-
   shopDaily={ key:"", weapons:[], armors:[] };
   shopWeekly={ key:"", items:[] };
-
   lastRegenTick = Date.now();
   tutorialWanted=false;
   defeatedMonsters=[];
@@ -1910,16 +1781,13 @@ function tickRegen(){
   const now = Date.now();
   const maxHp = getMaxHp();
   const maxEnergy = getMaxEnergy();
+  const regenAllowed = (!isInBattle || !combatStarted);
 
-  if(!isInBattle){
+  if(regenAllowed){
     const ticks = Math.floor((now - lastRegenTick) / 15000);
     if(ticks > 0){
-      if(currentHp < maxHp){
-        currentHp = Math.min(maxHp, currentHp + ticks);
-      }
-      if(player.energy < maxEnergy){
-        player.energy = Math.min(maxEnergy, player.energy + ticks);
-      }
+      if(currentHp < maxHp) currentHp = Math.min(maxHp, currentHp + ticks);
+      if(player.energy < maxEnergy) player.energy = Math.min(maxEnergy, player.energy + ticks);
       lastRegenTick += ticks * 15000;
       updateUI();
     } else {
