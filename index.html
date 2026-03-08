@@ -242,7 +242,7 @@ input[type="text"]{
         </div>
 
         <div class="mut" style="margin-top:8px;">
-          Kritische Treffer: 5% (1,5×). Loot-Drop: 3%. Monster-kritische Treffer können Rüstungen beschädigen.
+          Kritische Treffer: 5% (1,5×). Loot-Drop: 8%. Monster-kritische Treffer können Rüstungen beschädigen.
           Regeneration außerhalb des Kampfes: alle 15 Sekunden +1 Gesundheit.
         </div>
       </div>
@@ -255,7 +255,7 @@ input[type="text"]{
           <button class="btnUse" onclick="pfUsePotion()">Trank benutzen</button>
           <button class="btnSmith" onclick="openSmith()">Schmied</button>
           <button onclick="openInventory()">Ausrüstung ansehen</button>
-          <button class="btnExit" onclick="pfExitDungeon()">Dungeon verlassen</button>
+          <button class="btnExit" id="pfExitBtn" onclick="pfExitDungeon()">Dungeon verlassen</button>
         </div>
       </div>
 
@@ -316,8 +316,8 @@ input[type="text"]{
 <script>
 const BUILD_INFO = {
   name: "Dungeon Slayer",
-  version: "Beta 0.10.3",
-  build: "2026-03-08-3",
+  version: "Beta 0.10.4",
+  build: "2026-03-08-4",
   notes: "Kleinere Fehlerbehebungen / Tutorial"
 };
 
@@ -376,12 +376,12 @@ function weekKey(){
   return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
 }
 
-const SAVE_VERSION=7;
+const SAVE_VERSION=8;
 const SAVE_KEY="dungeon_slayer_save_v"+SAVE_VERSION;
 function safeStringify(obj){ try{return JSON.stringify(obj);}catch(e){return null;} }
 function safeParse(str){ try{return JSON.parse(str);}catch(e){return null;} }
 function snapshotForSave(){
-  return { v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, run,skillCD,pfx, shopDaily,shopWeekly, lastRegenHpAt,lastRegenEnergyAt };
+  return { v:SAVE_VERSION,t:Date.now(), player,currentHp, monster,isInBattle, run,skillCD,pfx, shopDaily,shopWeekly, lastRegenHpAt,lastRegenEnergyAt, regenAccumulator };
 }
 function saveGame(){
   const json=safeStringify(snapshotForSave());
@@ -404,6 +404,7 @@ function loadGame(){
   shopWeekly=data.shopWeekly||shopWeekly;
   lastRegenHpAt=data.lastRegenHpAt||Date.now();
   lastRegenEnergyAt=data.lastRegenEnergyAt||Date.now();
+  regenAccumulator=typeof data.regenAccumulator==="number" ? data.regenAccumulator : 0;
 
   if(!monster || monster.hp<=0) isInBattle=false;
   currentHp=clamp(currentHp,1,getMaxHp());
@@ -415,7 +416,7 @@ window.addEventListener("beforeunload", saveGame);
 
 const INV_CAP=28;
 const BASE_CRIT=0.05, CRIT_MULT=1.5;
-const LOOT_CHANCE=0.03;
+const LOOT_CHANCE=0.08;
 
 let player={
   name:"",
@@ -455,6 +456,7 @@ let shopWeekly={ key:"", items:[] };
 let lastRegenHpAt=Date.now();
 let lastRegenEnergyAt=Date.now();
 let regenAccumulator=0;
+let tutorialWanted=false;
 
 function resetSkillCooldowns(){
   skillCD={1:0,2:0,3:0};
@@ -785,18 +787,33 @@ const dungeonDatabase = {
   ]
 };
 
-function pickMonsterByRules(){
-  let pool=[];
-  if(player.lvl <= 3){
-    pool = normalMonsterDatabase.filter(m => m.lvl === 1);
-  } else if(player.lvl>=3){
-    pool=normalMonsterDatabase.filter(m=>m.lvl===player.lvl || m.lvl===player.lvl-1);
-    if(!pool.length) pool=normalMonsterDatabase.filter(m=>m.lvl<=player.lvl+1);
+function pickByWeightedLevelChoice(){
+  let targetLevel = 1;
+  const r = Math.random();
+
+  if(player.lvl <= 1){
+    targetLevel = 1;
+  } else if(player.lvl === 2){
+    targetLevel = r < 0.80 ? 2 : 1;
   } else {
-    pool=normalMonsterDatabase.filter(m=>m.lvl<=player.lvl+1);
+    if(r < 0.70){
+      targetLevel = player.lvl;
+    } else if(r < 0.90){
+      targetLevel = player.lvl - 1;
+    } else {
+      targetLevel = player.lvl + 1;
+    }
   }
-  if(!pool.length) pool=normalMonsterDatabase;
+
+  let pool = normalMonsterDatabase.filter(m => m.lvl === targetLevel);
+  if(!pool.length){
+    pool = normalMonsterDatabase.filter(m => m.lvl <= player.lvl + 1 && m.lvl >= Math.max(1, player.lvl - 1));
+  }
+  if(!pool.length) pool = normalMonsterDatabase;
   return JSON.parse(JSON.stringify(pool[Math.floor(Math.random()*pool.length)]));
+}
+function pickMonsterByRules(){
+  return pickByWeightedLevelChoice();
 }
 function pickDungeonMonsterByStage(stageIndex){
   const stageMap=["A","B","C","D","Boss"];
@@ -1542,6 +1559,7 @@ function openDungeonChest(){
 function showPostFight(victory){
   const pf=document.getElementById("postFight");
   const st=document.getElementById("summaryText");
+  const pfExitBtn=document.getElementById("pfExitBtn");
 
   const loot = fightTracker?.loot ? `${fightTracker.loot.name} ${rarityTag(fightTracker.loot.rarity)}` : "Kein Loot.";
   const title = victory ? "Du hast gewonnen." : "Du hast verloren.";
@@ -1558,6 +1576,7 @@ function showPostFight(victory){
     <div class="mut" style="margin-top:6px;">Loot: ${loot}</div>
   `;
 
+  pfExitBtn.disabled = !run.active;
   pf.style.display="block";
   updateUI();
 }
@@ -1712,6 +1731,10 @@ function selectCompanion(id){
   log(`Begleiter gewählt: <b>${getCompanion().name}</b>.`, "cInfo");
   closePopup();
   updateUI();
+  if(tutorialWanted){
+    tutorialFlow();
+    tutorialWanted = false;
+  }
 }
 
 function tutorialFlow(){
@@ -1719,34 +1742,32 @@ function tutorialFlow(){
     `<div style="line-height:1.6">
       <div><b>Willkommen bei Dungeon Slayer.</b></div>
       <div class="mut" style="margin-top:10px;">
-        <b>Ziel des Spiels:</b> Besiege Monster, sammle Gold und Erfahrungspunkte, kaufe bessere Ausrüstung und bezwinge den Dungeon.<br><br>
+        <b>Ablauf eines Kampfes:</b> Du startest mit „Nächster Kampf“ oder im Dungeon einen neuen Kampf. Mit „Angriff“ greifst du das Monster an. Wenn das Monster danach noch lebt, schlägt es zurück. Alternativ kannst du eine Fähigkeit benutzen oder einen Trank trinken. Nach dem Kampf bekommst du Gold, Erfahrungspunkte und mit etwas Glück Loot.<br><br>
 
-        <b>Normale Kämpfe:</b> Mit „Nächster Kampf“ startest du einen normalen Kampf. Zu Beginn sind die ersten drei Gegner immer Level 1, damit der Einstieg leichter ist.<br><br>
+        <b>Level:</b> Dein Level zeigt, wie weit dein Charakter entwickelt ist. Mit höheren Leveln werden deine Grundwerte besser und stärkere Gegner sowie bessere Ausrüstung werden interessant.<br><br>
 
-        <b>Angriff:</b> Mit „Angriff“ greifst du das Monster an. Wenn das Monster danach noch lebt, schlägt es zurück.<br><br>
+        <b>Erfahrungspunkte:</b> Erfahrungspunkte erhältst du für Siege. Wenn die Anzeige voll ist, steigst du ein Level auf.<br><br>
 
-        <b>Tränke:</b> Ein Trank stellt einen Teil deiner maximalen Gesundheit wieder her. Im Kampf kostet dich das deine Runde. Außerhalb des Kampfes kannst du ohne Gegenangriff heilen.<br><br>
+        <b>Gesundheit:</b> Das sind deine Lebenspunkte. Fallen sie auf null, verlierst du den Kampf. Außerhalb des Kampfes regenerierst du alle 15 Sekunden 1 Gesundheit.<br><br>
 
-        <b>Klassen und Fähigkeiten:</b> Jede Klasse besitzt drei besondere Fähigkeiten. Diese benötigen Energie und haben eine Abklingzeit. Die Abklingzeit läuft nach Kämpfen wieder herunter. Über das kleine „i“ bei einer Fähigkeit kannst du nachlesen, was sie macht.<br><br>
+        <b>Angriff:</b> Angriff bestimmt, wie viel Schaden du mit normalen Treffern machst.<br><br>
 
-        <b>Begleiter:</b> Begleiter geben dir dauerhafte Boni, zum Beispiel mehr Angriff, Verteidigung, kritische Treffer oder Lebensraub.<br><br>
+        <b>Verteidigung:</b> Verteidigung verringert den Schaden, den du von Monstern erhältst.<br><br>
+
+        <b>Energie:</b> Energie brauchst du für Klassenfähigkeiten. Sie regeneriert sich außerhalb des Kampfes wieder nach und nach.<br><br>
 
         <b>Schmied:</b> Beim Schmied kaufst du Waffen und Rüstungen. Dort kannst du auch deine ausgerüstete Rüstung reparieren. Die Angebote sind nach dem günstigsten Preis sortiert.<br><br>
 
-        <b>Weekly-Shop:</b> Hier findest du besondere Angebote für höhere Level. Auch dort ist alles nach dem günstigsten Preis sortiert.<br><br>
+        <b>Weekly-Shop:</b> Hier findest du besondere Angebote, oft auch für höhere Level. Auch hier ist alles nach Preis sortiert.<br><br>
 
-        <b>Ausrüstung:</b> Waffen erhöhen deinen Angriff. Rüstungen erhöhen Verteidigung und oft auch Gesundheit. Manche Gegenstände besitzen Zusatzwerte oder Set-Boni.<br><br>
+        <b>Alchemieladen:</b> Im Alchemieladen kaufst du Tränke und weitere Hilfsmittel wie Energie- oder Verstärkungsgegenstände.<br><br>
 
-        <b>Haltbarkeit:</b> Kritische Treffer von Monstern beschädigen deine Rüstung. Wenn die Haltbarkeit auf null fällt, wird die Rüstung zerstört.<br><br>
+        <b>Ausrüstung:</b> Waffen erhöhen deinen Angriff. Rüstungen erhöhen vor allem Verteidigung und Gesundheit. Manche Ausrüstung gibt Zusatzwerte oder Set-Boni.<br><br>
 
-        <b>Dungeon-Run:</b> Im Dungeon kämpfst du nacheinander gegen fünf Gegner: A, B, C, D und am Ende den Boss. Wenn du siegst, erscheint eine Truhe mit Belohnungen.<br><br>
-
-        <b>Regeneration:</b> Außerhalb des Kampfes regenerierst du alle 15 Sekunden 1 Gesundheit. Zusätzlich regenerierst du nach und nach Energie.<br><br>
-
-        <b>Speichern:</b> Dein Fortschritt wird im Browser gespeichert. Mit „Reset“ startest du komplett neu.
+        <b>Dungeon:</b> Im Dungeon kämpfst du nacheinander gegen A, B, C, D und dann den Boss. Nur wenn du gerade im Dungeon bist, kannst du ihn auch wieder verlassen.
       </div>
     </div>`,
-    `<button onclick="closePopup()">Verstanden</button>`
+    `<button onclick="closePopup()">Los geht’s</button>`
   );
 }
 
@@ -1774,14 +1795,11 @@ function confirmNameAndTutorial(wantsTutorial){
   const inp=document.getElementById("playerNameInput");
   const raw=(inp?.value||"").trim();
   player.name = raw ? raw : "Unbekannt";
+  tutorialWanted = wantsTutorial;
   resetSkillCooldowns();
   resetTemporaryEffects();
   closePopup();
   updateUI();
-
-  if(wantsTutorial){
-    tutorialFlow();
-  }
   openClassPicker(true);
 }
 
@@ -1814,6 +1832,7 @@ function hardResetSaveUI(){
   lastRegenHpAt=Date.now();
   lastRegenEnergyAt=Date.now();
   regenAccumulator=0;
+  tutorialWanted=false;
 
   document.getElementById("exitDungeonBtn").style.display="none";
   document.getElementById("openChestBtn").style.display="none";
@@ -1885,6 +1904,7 @@ function tickRegen(){
   lastRegenHpAt = Date.now();
   lastRegenEnergyAt = Date.now();
   regenAccumulator = 0;
+  tutorialWanted = false;
 
   updateUI();
 
